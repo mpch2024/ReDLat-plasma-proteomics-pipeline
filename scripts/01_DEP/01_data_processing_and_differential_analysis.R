@@ -37,7 +37,30 @@
 # 00_config_paths_packages
 ###############################################################################
 
-project_root <- "C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2"
+##############################################################################
+# 00_config_paths_packages
+##############################################################################
+
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+# Root of the GitHub repository
+project_root <- here::here()
+
+# Standard repository folders
+data_dir    <- file.path(project_root, "data")
+results_dir <- file.path(project_root, "results", "DEP")
+figures_dir <- file.path(project_root, "figures", "main")
+
+# Input files
+csv_file  <- file.path(data_dir, "ReDLat_CARD-proteomic_updated_all_data_11_2025.csv")
+adat_file <- file.path(data_dir, "merged.adat")
+
+# Legacy compatibility
+outdir <- project_root
 outdir <- project_root
 
 csv_file  <- file.path(project_root, "data", "ReDLat_CARD-proteomic_updated_all_data_11_2025.csv")
