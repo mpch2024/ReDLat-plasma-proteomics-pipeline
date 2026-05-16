@@ -1,0 +1,556 @@
+###############################################################################
+# 01_define_wgcna_input_from_DEP_FINAL_v2.R
+#
+# PURPOSE
+# Build the canonical GENE-COLLAPSED WGCNA input files from the cleaned DEP
+# pipeline outputs.
+#
+# IMPORTANT
+# This script DOES NOT run WGCNA.
+# This script prepares the input for Script 02.
+#
+# WGCNA input level:
+#   GENE-COLLAPSED, not aptamer-level.
+#
+# Collapse rule:
+#   One representative AptName per EntrezGeneSymbol, using the canonical
+#   gene-collapsed DEP table from the cleaned DEP pipeline.
+#
+# Source DEP project:
+#   C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2
+#
+# WGCNA project generated from zero here:
+#   C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2
+#
+# OUTPUTS EXPECTED BY SCRIPT 02
+#   results/01_define_wgcna_input_from_DEP/gene_collapsed_expression_matrix.csv
+#   results/01_define_wgcna_input_from_DEP/wgcna_sample_metadata.csv
+#   results/01_define_wgcna_input_from_DEP/gene_level_annotation.csv
+#   results/01_define_wgcna_input_from_DEP/wgcna_input_manifest.csv
+#   results/01_define_wgcna_input_from_DEP/wgcna_input_qc_summary.csv
+###############################################################################
+
+rm(list = ls())
+
+# =============================================================================
+# 0) CONFIGURATION
+# =============================================================================
+
+DEP_PROJECT_ROOT <- "C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2"
+
+WGCNA_PROJECT_ROOT <- "C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2"
+
+DEP_WORKSPACE_FILE <- file.path(
+  DEP_PROJECT_ROOT,
+  "result", "workspace", "analysis_workspace.RData"
+)
+
+DEP_GENE_TABLE <- file.path(
+  DEP_PROJECT_ROOT,
+  "result", "03_dep", "gene_collapsed",
+  "AD_vs_CN_full_limma_results_gene_collapsed.csv"
+)
+
+OUTDIR <- file.path(
+  WGCNA_PROJECT_ROOT,
+  "results", "01_define_wgcna_input_from_DEP"
+)
+
+MAIN_GROUPS <- c("CN", "AD")
+
+CORE_METADATA <- c(
+  "SampleId",
+  "SampleGroup",
+  "Age",
+  "Sex",
+  "Country",
+  "Education"
+)
+
+USE_LOG2_FOR_WGCNA <- TRUE
+REMOVE_ZERO_VARIANCE_FEATURES <- TRUE
+MIN_NON_MISSING_PER_FEATURE <- 10
+
+# =============================================================================
+# 1) PACKAGES AND HELPERS
+# =============================================================================
+
+required_pkgs <- c(
+  "dplyr",
+  "tidyr",
+  "readr",
+  "tibble",
+  "purrr",
+  "stringr"
+)
+
+missing_pkgs <- required_pkgs[
+  !vapply(required_pkgs, requireNamespace, logical(1), quietly = TRUE)
+]
+
+if (length(missing_pkgs) > 0) {
+  install.packages(missing_pkgs)
+}
+
+invisible(lapply(required_pkgs, library, character.only = TRUE))
+
+options(stringsAsFactors = FALSE)
+options(error = traceback)
+
+safe_write_csv <- function(x, file) {
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+  readr::write_csv(x, file)
+}
+
+clean_text_na <- function(x) {
+  x <- as.character(x)
+  x <- trimws(x)
+  x[x %in% c("", "NA", "NaN", "NULL", "null", "N/A", "nan")] <- NA_character_
+  x
+}
+
+safe_log2_vector <- function(x) {
+  x <- suppressWarnings(as.numeric(x))
+  x[x <= 0] <- NA_real_
+  log2(x)
+}
+
+safe_numeric <- function(x) {
+  suppressWarnings(as.numeric(x))
+}
+
+stop_if_missing_file <- function(file, label) {
+  if (!file.exists(file)) {
+    stop(label, " not found:\n", file, call. = FALSE)
+  }
+}
+
+# =============================================================================
+# 2) CREATE PROJECT STRUCTURE FROM ZERO
+# =============================================================================
+
+dir.create(WGCNA_PROJECT_ROOT, recursive = TRUE, showWarnings = FALSE)
+dir.create(file.path(WGCNA_PROJECT_ROOT, "results"), recursive = TRUE, showWarnings = FALSE)
+dir.create(file.path(WGCNA_PROJECT_ROOT, "scripts"), recursive = TRUE, showWarnings = FALSE)
+
+dir.create(OUTDIR, recursive = TRUE, showWarnings = FALSE)
+dir.create(file.path(OUTDIR, "tables"), recursive = TRUE, showWarnings = FALSE)
+dir.create(file.path(OUTDIR, "qc"), recursive = TRUE, showWarnings = FALSE)
+
+# =============================================================================
+# 3) CHECK INPUTS
+# =============================================================================
+
+stop_if_missing_file(
+  DEP_WORKSPACE_FILE,
+  "DEP workspace"
+)
+
+stop_if_missing_file(
+  DEP_GENE_TABLE,
+  "DEP gene-collapsed table"
+)
+
+message("Input files detected.")
+message("DEP workspace: ", DEP_WORKSPACE_FILE)
+message("DEP gene table: ", DEP_GENE_TABLE)
+message("WGCNA output root: ", WGCNA_PROJECT_ROOT)
+
+# =============================================================================
+# 4) LOAD DEP WORKSPACE AND GENE-COLLAPSED TABLE
+# =============================================================================
+
+load(DEP_WORKSPACE_FILE)
+
+required_objects <- c(
+  "sample_data",
+  "dep_df",
+  "DEP_gene",
+  "annot_tbl",
+  "protein_universe"
+)
+
+missing_objects <- required_objects[
+  !vapply(required_objects, exists, logical(1))
+]
+
+if (length(missing_objects) > 0) {
+  stop(
+    "The DEP workspace is missing required objects: ",
+    paste(missing_objects, collapse = ", "),
+    call. = FALSE
+  )
+}
+
+DEP_gene_from_file <- readr::read_csv(
+  DEP_GENE_TABLE,
+  show_col_types = FALSE
+)
+
+required_dep_cols <- c(
+  "EntrezGeneSymbol",
+  "AptName",
+  "SeqId",
+  "Protein_Name",
+  "logFC",
+  "adj.P.Val"
+)
+
+missing_dep_cols <- setdiff(required_dep_cols, names(DEP_gene_from_file))
+
+if (length(missing_dep_cols) > 0) {
+  stop(
+    "DEP gene table is missing required columns: ",
+    paste(missing_dep_cols, collapse = ", "),
+    call. = FALSE
+  )
+}
+
+if (!"SampleId" %in% names(sample_data)) {
+  stop("sample_data must contain SampleId.", call. = FALSE)
+}
+
+# =============================================================================
+# 5) CANONICAL GENE-COLLAPSED MAP
+# =============================================================================
+
+gene_map <- DEP_gene_from_file %>%
+  dplyr::mutate(
+    EntrezGeneSymbol = clean_text_na(EntrezGeneSymbol),
+    AptName = as.character(AptName),
+    SeqId = as.character(SeqId),
+    Protein_Name = as.character(Protein_Name),
+    logFC = safe_numeric(logFC),
+    adj.P.Val = safe_numeric(adj.P.Val)
+  ) %>%
+  dplyr::filter(
+    !is.na(EntrezGeneSymbol),
+    !is.na(AptName),
+    AptName %in% names(sample_data)
+  ) %>%
+  dplyr::arrange(adj.P.Val, dplyr::desc(abs(logFC)), AptName) %>%
+  dplyr::distinct(EntrezGeneSymbol, .keep_all = TRUE)
+
+if (nrow(gene_map) == 0) {
+  stop(
+    "No gene-collapsed features could be mapped back to sample_data expression columns.",
+    call. = FALSE
+  )
+}
+
+message("Gene-collapsed features mapped from DEP table: ", nrow(gene_map))
+
+# =============================================================================
+# 6) BUILD WGCNA SAMPLE METADATA
+# =============================================================================
+
+metadata_cols_optional <- c(
+  "ApoE", "APOE_group", "APOE4_carrier",
+  "cdr_global", "cdr_boxscore", "mmse_total", "udsfaq_total",
+  "NPI", "Mini.SEA", "Mini-SEA", "Mini_SEA",
+  "T.ADLQ", "T-ADLQ", "T_ADLQ",
+  "p.tau181", "p-tau181", "p_tau181",
+  "p.tau217", "p-tau217", "p_tau217",
+  "NfL",
+  "ratio.AB42.40", "ratio AB42/40", "ratio_AB42_40",
+  "Site", "site", "Center", "center",
+  "Cohort", "cohort",
+  "PlateId", "PlateId.adat"
+)
+
+metadata_cols <- unique(
+  c(CORE_METADATA, intersect(metadata_cols_optional, names(sample_data)))
+)
+
+missing_core <- setdiff(CORE_METADATA, names(sample_data))
+
+if (length(missing_core) > 0) {
+  stop(
+    "sample_data is missing core metadata columns: ",
+    paste(missing_core, collapse = ", "),
+    call. = FALSE
+  )
+}
+
+wgcna_metadata <- sample_data %>%
+  dplyr::filter(SampleGroup %in% MAIN_GROUPS) %>%
+  dplyr::select(dplyr::all_of(metadata_cols)) %>%
+  dplyr::mutate(
+    SampleId = as.character(SampleId),
+    SampleGroup = as.character(SampleGroup),
+    Sex = as.character(Sex),
+    Country = as.character(Country),
+    Age = safe_numeric(Age),
+    Education = safe_numeric(Education)
+  ) %>%
+  dplyr::filter(stats::complete.cases(dplyr::across(dplyr::all_of(CORE_METADATA)))) %>%
+  dplyr::distinct(SampleId, .keep_all = TRUE)
+
+wgcna_metadata <- wgcna_metadata %>%
+  dplyr::mutate(
+    Mini_SEA = dplyr::coalesce(
+      if ("Mini_SEA" %in% names(.)) safe_numeric(.data[["Mini_SEA"]]) else NA_real_,
+      if ("Mini.SEA" %in% names(.)) safe_numeric(.data[["Mini.SEA"]]) else NA_real_,
+      if ("Mini-SEA" %in% names(.)) safe_numeric(.data[["Mini-SEA"]]) else NA_real_
+    ),
+    T_ADLQ = dplyr::coalesce(
+      if ("T_ADLQ" %in% names(.)) safe_numeric(.data[["T_ADLQ"]]) else NA_real_,
+      if ("T.ADLQ" %in% names(.)) safe_numeric(.data[["T.ADLQ"]]) else NA_real_,
+      if ("T-ADLQ" %in% names(.)) safe_numeric(.data[["T-ADLQ"]]) else NA_real_
+    ),
+    p_tau181 = dplyr::coalesce(
+      if ("p_tau181" %in% names(.)) safe_numeric(.data[["p_tau181"]]) else NA_real_,
+      if ("p.tau181" %in% names(.)) safe_numeric(.data[["p.tau181"]]) else NA_real_,
+      if ("p-tau181" %in% names(.)) safe_numeric(.data[["p-tau181"]]) else NA_real_
+    ),
+    p_tau217 = dplyr::coalesce(
+      if ("p_tau217" %in% names(.)) safe_numeric(.data[["p_tau217"]]) else NA_real_,
+      if ("p.tau217" %in% names(.)) safe_numeric(.data[["p.tau217"]]) else NA_real_,
+      if ("p-tau217" %in% names(.)) safe_numeric(.data[["p-tau217"]]) else NA_real_
+    ),
+    ratio_AB42_40 = dplyr::coalesce(
+      if ("ratio_AB42_40" %in% names(.)) safe_numeric(.data[["ratio_AB42_40"]]) else NA_real_,
+      if ("ratio.AB42.40" %in% names(.)) safe_numeric(.data[["ratio.AB42.40"]]) else NA_real_,
+      if ("ratio AB42/40" %in% names(.)) safe_numeric(.data[["ratio AB42/40"]]) else NA_real_
+    )
+  )
+
+if (!"APOE4_carrier" %in% names(wgcna_metadata) && "ApoE" %in% names(wgcna_metadata)) {
+  wgcna_metadata <- wgcna_metadata %>%
+    dplyr::mutate(
+      ApoE = trimws(as.character(ApoE)),
+      APOE4_carrier = dplyr::case_when(
+        ApoE %in% c("e2/e4", "e3/e4", "e4/e4") ~ 1,
+        ApoE %in% c("e2/e2", "e2/e3", "e3/e3") ~ 0,
+        TRUE ~ NA_real_
+      )
+    )
+}
+
+if ("APOE4_carrier" %in% names(wgcna_metadata)) {
+  wgcna_metadata <- wgcna_metadata %>%
+    dplyr::mutate(APOE4_carrier = safe_numeric(APOE4_carrier))
+}
+
+message("WGCNA samples after CN/AD and core metadata filtering: ", nrow(wgcna_metadata))
+
+# =============================================================================
+# 7) BUILD GENE-COLLAPSED EXPRESSION MATRIX
+# =============================================================================
+
+expr_cols <- gene_map$AptName
+
+expr_df <- sample_data %>%
+  dplyr::filter(SampleId %in% wgcna_metadata$SampleId) %>%
+  dplyr::select(SampleId, dplyr::all_of(expr_cols)) %>%
+  dplyr::distinct(SampleId, .keep_all = TRUE)
+
+expr_df <- wgcna_metadata %>%
+  dplyr::select(SampleId) %>%
+  dplyr::left_join(expr_df, by = "SampleId")
+
+expr_mat <- expr_df %>%
+  dplyr::select(-SampleId) %>%
+  as.data.frame()
+
+if (USE_LOG2_FOR_WGCNA) {
+  expr_mat <- as.data.frame(lapply(expr_mat, safe_log2_vector))
+} else {
+  expr_mat <- as.data.frame(lapply(expr_mat, safe_numeric))
+}
+
+colnames(expr_mat) <- gene_map$EntrezGeneSymbol
+
+if (anyDuplicated(colnames(expr_mat)) > 0) {
+  expr_mat <- expr_mat[, !duplicated(colnames(expr_mat)), drop = FALSE]
+}
+
+feature_qc <- tibble::tibble(
+  EntrezGeneSymbol = colnames(expr_mat),
+  n_non_missing = vapply(expr_mat, function(x) sum(!is.na(x)), numeric(1)),
+  missing_prop = vapply(expr_mat, function(x) mean(is.na(x)), numeric(1)),
+  sd = vapply(expr_mat, function(x) stats::sd(x, na.rm = TRUE), numeric(1))
+) %>%
+  dplyr::mutate(
+    keep_non_missing = n_non_missing >= MIN_NON_MISSING_PER_FEATURE,
+    keep_variance = is.finite(sd) & sd > 0,
+    keep_final = keep_non_missing & keep_variance
+  )
+
+if (REMOVE_ZERO_VARIANCE_FEATURES) {
+  keep_genes <- feature_qc %>%
+    dplyr::filter(keep_final) %>%
+    dplyr::pull(EntrezGeneSymbol)
+
+  expr_mat <- expr_mat[, keep_genes, drop = FALSE]
+}
+
+missing_before_imputation <- sum(is.na(expr_mat))
+
+for (j in seq_len(ncol(expr_mat))) {
+  miss <- is.na(expr_mat[[j]])
+  if (any(miss)) {
+    med <- stats::median(expr_mat[[j]], na.rm = TRUE)
+    expr_mat[[j]][miss] <- med
+  }
+}
+
+missing_after_imputation <- sum(is.na(expr_mat))
+
+wgcna_expression <- dplyr::bind_cols(
+  wgcna_metadata %>% dplyr::select(SampleId),
+  expr_mat
+)
+
+# =============================================================================
+# 8) BUILD GENE-LEVEL ANNOTATION
+# =============================================================================
+
+gene_level_annotation <- gene_map %>%
+  dplyr::filter(EntrezGeneSymbol %in% colnames(expr_mat)) %>%
+  dplyr::select(
+    EntrezGeneSymbol,
+    Protein_Name,
+    AptName,
+    SeqId,
+    dplyr::any_of(c(
+      "TargetFullName",
+      "Target",
+      "UniProt",
+      "logFC",
+      "P.Value",
+      "adj.P.Val",
+      "type",
+      "Direction"
+    ))
+  ) %>%
+  dplyr::arrange(EntrezGeneSymbol)
+
+# =============================================================================
+# 9) QC SUMMARIES AND MANIFEST
+# =============================================================================
+
+sample_qc <- wgcna_metadata %>%
+  dplyr::count(SampleGroup, Country, name = "n") %>%
+  dplyr::arrange(Country, SampleGroup)
+
+wgcna_input_qc_summary <- tibble::tibble(
+  metric = c(
+    "dep_project_root",
+    "wgcna_project_root",
+    "dep_workspace_file",
+    "dep_gene_table",
+    "n_samples_wgcna",
+    "n_CN",
+    "n_AD",
+    "n_countries",
+    "n_gene_collapsed_features_from_DEP",
+    "n_features_exported_for_WGCNA",
+    "use_log2_for_wgcna",
+    "remove_zero_variance_features",
+    "min_non_missing_per_feature",
+    "missing_values_before_imputation",
+    "missing_values_after_imputation",
+    "wgcna_input_level",
+    "collapse_rule"
+  ),
+  value = c(
+    DEP_PROJECT_ROOT,
+    WGCNA_PROJECT_ROOT,
+    DEP_WORKSPACE_FILE,
+    DEP_GENE_TABLE,
+    as.character(nrow(wgcna_metadata)),
+    as.character(sum(wgcna_metadata$SampleGroup == "CN", na.rm = TRUE)),
+    as.character(sum(wgcna_metadata$SampleGroup == "AD", na.rm = TRUE)),
+    as.character(dplyr::n_distinct(wgcna_metadata$Country)),
+    as.character(nrow(gene_map)),
+    as.character(ncol(expr_mat)),
+    as.character(USE_LOG2_FOR_WGCNA),
+    as.character(REMOVE_ZERO_VARIANCE_FEATURES),
+    as.character(MIN_NON_MISSING_PER_FEATURE),
+    as.character(missing_before_imputation),
+    as.character(missing_after_imputation),
+    "GENE-COLLAPSED, not aptamer-level",
+    "One representative AptName per EntrezGeneSymbol from the canonical DEP gene-collapsed table"
+  )
+)
+
+wgcna_input_manifest <- tibble::tibble(
+  output_file = c(
+    "gene_collapsed_expression_matrix.csv",
+    "wgcna_sample_metadata.csv",
+    "gene_level_annotation.csv",
+    "tables/gene_level_feature_qc.csv",
+    "tables/sample_counts_by_country_group.csv",
+    "wgcna_input_qc_summary.csv",
+    "wgcna_input_manifest.csv",
+    "sessionInfo.txt"
+  ),
+  description = c(
+    "Sample-by-gene expression matrix for WGCNA. Columns are EntrezGeneSymbol features selected from the DEP gene-collapse map.",
+    "Metadata aligned to the expression matrix sample order.",
+    "Gene-level annotation linking EntrezGeneSymbol to selected AptName and DEP statistics.",
+    "Feature-level missingness and variance QC used before WGCNA export.",
+    "Sample counts by country and diagnosis.",
+    "Global QC and provenance summary.",
+    "Manifest describing all exported files.",
+    "R session information for reproducibility."
+  )
+)
+
+# =============================================================================
+# 10) EXPORT
+# =============================================================================
+
+safe_write_csv(
+  wgcna_expression,
+  file.path(OUTDIR, "gene_collapsed_expression_matrix.csv")
+)
+
+safe_write_csv(
+  wgcna_metadata,
+  file.path(OUTDIR, "wgcna_sample_metadata.csv")
+)
+
+safe_write_csv(
+  gene_level_annotation,
+  file.path(OUTDIR, "gene_level_annotation.csv")
+)
+
+safe_write_csv(
+  feature_qc,
+  file.path(OUTDIR, "tables", "gene_level_feature_qc.csv")
+)
+
+safe_write_csv(
+  sample_qc,
+  file.path(OUTDIR, "tables", "sample_counts_by_country_group.csv")
+)
+
+safe_write_csv(
+  wgcna_input_qc_summary,
+  file.path(OUTDIR, "wgcna_input_qc_summary.csv")
+)
+
+safe_write_csv(
+  wgcna_input_manifest,
+  file.path(OUTDIR, "wgcna_input_manifest.csv")
+)
+
+writeLines(
+  capture.output(utils::sessionInfo()),
+  con = file.path(OUTDIR, "sessionInfo.txt")
+)
+
+message("WGCNA input builder complete.")
+message("Output directory: ", OUTDIR)
+message("Samples exported: ", nrow(wgcna_metadata))
+message("Gene-level features exported: ", ncol(expr_mat))
+message("Missing values before imputation: ", missing_before_imputation)
+message("Missing values after imputation: ", missing_after_imputation)
+message("IMPORTANT: Script 02 must use gene_collapsed_expression_matrix.csv.")
+message("IMPORTANT: WGCNA input level is GENE-COLLAPSED, not aptamer-level.")
+
+###############################################################################
+# END
+###############################################################################
