@@ -34,7 +34,7 @@ if (!requireNamespace("here", quietly = TRUE)) {
 library(here)
 
 project_root <- here::here()
-outdir <- project_root
+outdir <- file.path(project_root, "results", "DEP")
 setwd(outdir)
 
 MAIN_FDR <- 0.05
@@ -595,7 +595,7 @@ run_enrichr_directional <- function(dep_tbl, out_prefix, out_folder, fdr = MAIN_
 
 message("01_load_workspace_and_tables")
 
-supp_root <- file.path(outdir, "result", "supplementary")
+supp_root <- file.path(outdir, "supplementary")
 ensure_dir(supp_root)
 ensure_dir(file.path(supp_root, "tables"))
 ensure_dir(file.path(supp_root, "figures"))
@@ -604,10 +604,10 @@ ensure_dir(file.path(supp_root, "logs"))
 supplementary_inventory <- tibble::tibble(section = character(), output = character(), note = character())
 
 workspace_file <- first_existing_file(c(
-  file.path(outdir, "result", "workspace", "analysis_workspace.RData"),
-  file.path(outdir, "result", "workspace", "proteomics_master_analysis_workspace.RData"),
-  file.path(outdir, "result", "workspace", "proteomics_master_reanalysis_workspace.RData"),
-  file.path(outdir, "result", "analysis_workspace.RData"),
+  file.path(outdir, "workspace", "analysis_workspace.RData"),
+  file.path(outdir, "workspace", "proteomics_master_analysis_workspace.RData"),
+  file.path(outdir, "workspace", "proteomics_master_reanalysis_workspace.RData"),
+  file.path(outdir, "analysis_workspace.RData"),
   file.path(outdir, "proteomics_master_reanalysis_workspace.RData"),
   file.path(outdir, "proteomics_master_analysis_workspace.RData")
 ))
@@ -626,9 +626,9 @@ if (exists("DEP_gene") && is.data.frame(DEP_gene)) {
   DEP_main_gene <- collapse_dep_to_gene_local(DEP)
 } else {
   dep_file <- first_existing_file(c(
-    file.path(outdir, "result", "03_dep", "gene_collapsed", "AD_vs_CN_full_limma_results_gene_collapsed.csv"),
-    file.path(outdir, "result", "dep", "AD_vs_CN_full_limma_results_gene_collapsed.csv"),
-    file.path(outdir, "result", "dep", "AD_vs_CN_full_limma_results.csv")
+    file.path(outdir, "03_dep", "gene_collapsed", "AD_vs_CN_full_limma_results_gene_collapsed.csv"),
+    file.path(outdir, "dep", "AD_vs_CN_full_limma_results_gene_collapsed.csv"),
+    file.path(outdir, "dep", "AD_vs_CN_full_limma_results.csv")
   ))
   if (is.na(dep_file)) stop("Main DEP gene-collapsed table not found.")
   DEP_main_gene <- readr::read_csv(dep_file, show_col_types = FALSE)
@@ -643,8 +643,8 @@ if (exists("DEP_aptamer") && is.data.frame(DEP_aptamer)) {
   DEP_main_aptamer <- standardize_dep_tbl(DEP)
 } else {
   apt_file <- first_existing_file(c(
-    file.path(outdir, "result", "03_dep", "aptamer_level", "AD_vs_CN_full_limma_results_aptamer_level.csv"),
-    file.path(outdir, "result", "dep", "AD_vs_CN_full_limma_results_aptamer_level.csv")
+    file.path(outdir, "03_dep", "aptamer_level", "AD_vs_CN_full_limma_results_aptamer_level.csv"),
+    file.path(outdir, "dep", "AD_vs_CN_full_limma_results_aptamer_level.csv")
   ))
   if (!is.na(apt_file)) DEP_main_aptamer <- standardize_dep_tbl(readr::read_csv(apt_file, show_col_types = FALSE))
 }
@@ -664,38 +664,38 @@ load_sensitivity_dep <- function(object_names, file_candidates) {
 DEP_APOE_gene_local <- load_sensitivity_dep(
   c("DEP_APOE_gene"),
   c(
-    file.path(outdir, "result", "04_sensitivity", "apoe", "AD_vs_CN_APOE_adjusted_full_limma_results_gene_collapsed.csv"),
-    file.path(outdir, "result", "dep_apoe", "AD_vs_CN_APOE_adjusted_full_limma_results.csv")
+    file.path(outdir, "04_sensitivity", "apoe", "AD_vs_CN_APOE_adjusted_full_limma_results_gene_collapsed.csv"),
+    file.path(outdir, "dep_apoe", "AD_vs_CN_APOE_adjusted_full_limma_results.csv")
   )
 )
 
 DEP_CDRSB_gene_local <- load_sensitivity_dep(
   c("DEP_CDRSB_gene"),
   c(
-    file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_only", "AD_only_CDRSB_severity_full_limma_results_gene_collapsed.csv"),
-    file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_only_CDRSB_severity_full_limma_results_gene_collapsed.csv")
+    file.path(outdir, "04_sensitivity", "cdrsb", "AD_only", "AD_only_CDRSB_severity_full_limma_results_gene_collapsed.csv"),
+    file.path(outdir, "04_sensitivity", "cdrsb", "AD_only_CDRSB_severity_full_limma_results_gene_collapsed.csv")
   )
 )
 
 DEP_CDRSB_ADJ_gene_local <- load_sensitivity_dep(
   c("DEP_CDRSB_ADJ_gene", "DEP_CDRSB_adjusted_gene", "DEP_CDRSB_ADJUSTED_gene"),
   c(
-    file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "AD_vs_CN_CDRSB_adjusted_full_limma_results_gene_collapsed.csv"),
-    file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "CDRSB_adjusted_AD_vs_CN_full_limma_results_gene_collapsed.csv")
+    file.path(outdir, "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "AD_vs_CN_CDRSB_adjusted_full_limma_results_gene_collapsed.csv"),
+    file.path(outdir, "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "CDRSB_adjusted_AD_vs_CN_full_limma_results_gene_collapsed.csv")
   )
 )
 
 DEP_VASCULAR_gene_local <- load_sensitivity_dep(
   c("DEP_VASCULAR_gene", "DEP_METABOLIC_gene"),
   c(
-    file.path(outdir, "result", "04_sensitivity", "vascular_metabolic", "AD_vs_CN_vascular_metabolic_adjusted_full_limma_results_gene_collapsed.csv")
+    file.path(outdir, "04_sensitivity", "vascular_metabolic", "AD_vs_CN_vascular_metabolic_adjusted_full_limma_results_gene_collapsed.csv")
   )
 )
 
 DEP_ATN_gene_local <- load_sensitivity_dep(
   c("DEP_ATN_gene", "DEP_ATN_adjusted_gene", "DEP_ATN_ADJUSTED_gene"),
   c(
-    file.path(outdir, "result", "04_sensitivity", "atn_adjusted", "AD_vs_CN_ATN_adjusted_full_limma_results_gene_collapsed.csv")
+    file.path(outdir, "04_sensitivity", "atn_adjusted", "AD_vs_CN_ATN_adjusted_full_limma_results_gene_collapsed.csv")
   )
 )
 
@@ -1035,9 +1035,9 @@ ensure_dir(dir_qc); ensure_dir(dir_by_country); ensure_dir(dir_overlap); ensure_
 
 country_specific_tbl <- NULL
 country_specific_file <- first_existing_file(c(
-  file.path(outdir, "result", "06_robustness", "country_meta", "tables", "country_specific_DEP_results.csv"),
-  file.path(outdir, "result", "06_robustness", "country_meta", "tables", "country_specific_effects_all.csv"),
-  file.path(outdir, "result", "step3_sensitivity", "meta_analysis", "tables", "country_specific_effects_all.csv")
+  file.path(outdir, "06_robustness", "country_meta", "tables", "country_specific_DEP_results.csv"),
+  file.path(outdir, "06_robustness", "country_meta", "tables", "country_specific_effects_all.csv"),
+  file.path(outdir, "step3_sensitivity", "meta_analysis", "tables", "country_specific_effects_all.csv")
 ))
 
 if (!is.na(country_specific_file)) {
@@ -1298,8 +1298,8 @@ if (exists("main_vs_loco_mean") && is.data.frame(main_vs_loco_mean)) {
   main_vs_loco_mean_local <- main_vs_loco_mean
 } else {
   f <- first_existing_file(c(
-    file.path(outdir, "result", "06_robustness", "country_loco", "tables", "main_vs_meanLOCO_table.csv"),
-    file.path(outdir, "result", "step3_sensitivity", "country_loco", "tables", "main_vs_meanLOCO_table.csv")
+    file.path(outdir, "06_robustness", "country_loco", "tables", "main_vs_meanLOCO_table.csv"),
+    file.path(outdir, "step3_sensitivity", "country_loco", "tables", "main_vs_meanLOCO_table.csv")
   ))
   if (!is.na(f)) main_vs_loco_mean_local <- readr::read_csv(f, show_col_types = FALSE)
 }
@@ -1328,8 +1328,8 @@ if (exists("meta_tbl") && is.data.frame(meta_tbl)) {
   meta_tbl_local <- meta_tbl
 } else {
   f <- first_existing_file(c(
-    file.path(outdir, "result", "06_robustness", "country_meta", "tables", "country_meta_analysis_results.csv"),
-    file.path(outdir, "result", "step3_sensitivity", "meta_analysis", "tables", "country_meta_analysis_results.csv")
+    file.path(outdir, "06_robustness", "country_meta", "tables", "country_meta_analysis_results.csv"),
+    file.path(outdir, "step3_sensitivity", "meta_analysis", "tables", "country_meta_analysis_results.csv")
   ))
   if (!is.na(f)) meta_tbl_local <- readr::read_csv(f, show_col_types = FALSE)
 }
@@ -1356,8 +1356,8 @@ if (exists("balanced_protein_tbl") && is.data.frame(balanced_protein_tbl)) {
   balanced_tbl_local <- balanced_protein_tbl
 } else {
   f <- first_existing_file(c(
-    file.path(outdir, "result", "06_robustness", "balanced_country_resampling", "tables", "balanced_resampling_protein_stability.csv"),
-    file.path(outdir, "result", "step4_balanced_country_resampling", "tables", "balanced_resampling_protein_stability.csv")
+    file.path(outdir, "06_robustness", "balanced_country_resampling", "tables", "balanced_resampling_protein_stability.csv"),
+    file.path(outdir, "step4_balanced_country_resampling", "tables", "balanced_resampling_protein_stability.csv")
   ))
   if (!is.na(f)) balanced_tbl_local <- readr::read_csv(f, show_col_types = FALSE)
 }
@@ -1514,8 +1514,8 @@ clinical_dir <- file.path(supp_root, "tables", "clinical_severity_secondary")
 ensure_dir(clinical_dir)
 
 severity_combined_file <- first_existing_file(c(
-  file.path(outdir, "result", "04_sensitivity", "clinical_severity", "severity_assoc_all_outcomes_combined.csv"),
-  file.path(outdir, "result", "clinical_severity", "severity_assoc_all_outcomes_combined.csv")
+  file.path(outdir, "04_sensitivity", "clinical_severity", "severity_assoc_all_outcomes_combined.csv"),
+  file.path(outdir, "clinical_severity", "severity_assoc_all_outcomes_combined.csv")
 ))
 
 if (!is.na(severity_combined_file)) {
@@ -1547,8 +1547,8 @@ if (!is.na(severity_combined_file)) {
   )
 } else {
   severity_files <- c(
-    list.files(file.path(outdir, "result", "04_sensitivity", "clinical_severity"), pattern = "^severity_assoc_.*\\.csv$", full.names = TRUE),
-    list.files(file.path(outdir, "result", "clinical_severity"), pattern = "^severity_assoc_.*\\.csv$", full.names = TRUE)
+    list.files(file.path(outdir, "04_sensitivity", "clinical_severity"), pattern = "^severity_assoc_.*\\.csv$", full.names = TRUE),
+    list.files(file.path(outdir, "clinical_severity"), pattern = "^severity_assoc_.*\\.csv$", full.names = TRUE)
   )
   if (length(severity_files) > 0) {
     severity_inventory <- tibble::tibble(file = severity_files, outcome = gsub("^severity_assoc_|\\.csv$", "", basename(severity_files)))

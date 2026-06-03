@@ -82,7 +82,7 @@ if (!requireNamespace("here", quietly = TRUE)) {
 library(here)
 
 project_root <- here::here()
-outdir <- project_root
+outdir <- file.path(project_root, "results", "DEP")
 setwd(outdir)
 
 MAIN_FDR <- if (exists("MAIN_FDR")) MAIN_FDR else 0.05
@@ -386,11 +386,11 @@ theme_panel_composite <- function(base_size = TEXT_SIZE, base_family = FONT_FAMI
 # 03_load_workspace_and_tables
 ###############################################################################
 
-ensure_dir(file.path(outdir, "result", "final_figures", "Figure2"))
-ensure_dir(file.path(outdir, "result", "final_figures", "Supplementary"))
-ensure_dir(file.path(outdir, "result", "final_source_data", "Figure2"))
-ensure_dir(file.path(outdir, "result", "final_source_data", "Supplementary"))
-ensure_dir(file.path(outdir, "result", "final_figures", "logs"))
+ensure_dir(file.path(outdir, "final_figures", "Figure2"))
+ensure_dir(file.path(outdir, "final_figures", "Supplementary"))
+ensure_dir(file.path(outdir, "final_source_data", "Figure2"))
+ensure_dir(file.path(outdir, "final_source_data", "Supplementary"))
+ensure_dir(file.path(outdir, "final_figures", "logs"))
 
 figure_manifest <- tibble::tibble(
   figure_id = character(),
@@ -401,14 +401,14 @@ figure_manifest <- tibble::tibble(
 )
 
 workspace_file <- first_existing_file(c(
-  file.path(outdir, "result", "workspace", "proteomics_master_analysis_workspace.RData"),
-  file.path(outdir, "result", "workspace", "analysis_workspace.RData"),
-  file.path(outdir, "result", "workspace", "proteomics_master_reanalysis_workspace.RData"),
+  file.path(outdir, "workspace", "proteomics_master_analysis_workspace.RData"),
+  file.path(outdir, "workspace", "analysis_workspace.RData"),
+  file.path(outdir, "workspace", "proteomics_master_reanalysis_workspace.RData"),
   file.path(outdir, "proteomics_master_analysis_workspace.RData"),
   file.path(outdir, "analysis_workspace.RData"),
   file.path(outdir, "proteomics_master_reanalysis_workspace.RData"),
-  file.path(outdir, "result", "analysis_workspace.RData"),
-  file.path(outdir, "result", "proteomics_master_reanalysis_workspace.RData")
+  file.path(outdir, "analysis_workspace.RData"),
+  file.path(outdir, "proteomics_master_reanalysis_workspace.RData")
 ))
 
 if (!is.na(workspace_file)) {
@@ -428,7 +428,7 @@ if (exists("DEP_gene") && is.data.frame(DEP_gene)) {
   DEP <- DEP
 } else {
   DEP <- require_table_file(
-    file.path(outdir, "result", "03_dep", "gene_collapsed", "AD_vs_CN_full_limma_results_gene_collapsed.csv"),
+    file.path(outdir, "03_dep", "gene_collapsed", "AD_vs_CN_full_limma_results_gene_collapsed.csv"),
     label = "main DEP gene-collapsed table from result/03_dep"
   )
 }
@@ -487,13 +487,13 @@ if (length(seq_cols_plot) == 0) stop("Could not infer proteomic columns from nor
 main_vs_loco_mean <- if (exists("main_vs_loco_mean") && is.data.frame(main_vs_loco_mean)) {
   main_vs_loco_mean
 } else {
-  read_csv_if_exists(file.path(outdir, "result", "06_robustness", "country_loco", "tables", "main_vs_meanLOCO_table.csv"), FALSE)
+  read_csv_if_exists(file.path(outdir, "06_robustness", "country_loco", "tables", "main_vs_meanLOCO_table.csv"), FALSE)
 }
 
 apoe_compare_tbl <- if (exists("apoe_compare_tbl") && is.data.frame(apoe_compare_tbl)) {
   apoe_compare_tbl
 } else {
-  read_csv_if_exists(file.path(outdir, "result", "04_sensitivity", "apoe", "primary_vs_APOE_adjusted_gene_comparison.csv"), FALSE)
+  read_csv_if_exists(file.path(outdir, "04_sensitivity", "apoe", "primary_vs_APOE_adjusted_gene_comparison.csv"), FALSE)
 }
 
 cdr_compare_tbl <- if (exists("cdrsb_compare_tbl") && is.data.frame(cdrsb_compare_tbl)) {
@@ -501,7 +501,7 @@ cdr_compare_tbl <- if (exists("cdrsb_compare_tbl") && is.data.frame(cdrsb_compar
 } else if (exists("cdr_compare_tbl") && is.data.frame(cdr_compare_tbl)) {
   cdr_compare_tbl
 } else {
-  read_csv_if_exists(file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_only", "primary_AD_vs_CN_vs_AD_only_CDRSB_severity_alignment.csv"), FALSE)
+  read_csv_if_exists(file.path(outdir, "04_sensitivity", "cdrsb", "AD_only", "primary_AD_vs_CN_vs_AD_only_CDRSB_severity_alignment.csv"), FALSE)
 }
 
 # Secondary diagnostic attenuation model: AD vs CN additionally adjusted for CDR-SB.
@@ -511,14 +511,14 @@ cdrsb_adjusted_compare_tbl <- if (exists("cdrsb_adjusted_compare_tbl") && is.dat
 } else if (exists("cdrsb_adjusted_ad_vs_cn_compare_tbl") && is.data.frame(cdrsb_adjusted_ad_vs_cn_compare_tbl)) {
   cdrsb_adjusted_ad_vs_cn_compare_tbl
 } else {
-  read_csv_if_exists(file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "primary_vs_CDRSB_adjusted_AD_vs_CN_gene_comparison.csv"), FALSE)
+  read_csv_if_exists(file.path(outdir, "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "primary_vs_CDRSB_adjusted_AD_vs_CN_gene_comparison.csv"), FALSE)
 }
 
 vascular_compare_tbl <- if (exists("vascular_compare_tbl") && is.data.frame(vascular_compare_tbl)) {
   vascular_compare_tbl
 } else {
   read_csv_if_exists(first_existing_file(c(
-    file.path(outdir, "result", "04_sensitivity", "vascular_metabolic", "main_vs_vascular_metabolic_adjusted_gene_comparison.csv")
+    file.path(outdir, "04_sensitivity", "vascular_metabolic", "main_vs_vascular_metabolic_adjusted_gene_comparison.csv")
   )), FALSE)
 }
 
@@ -527,17 +527,17 @@ atn_compare_tbl <- if (exists("atn_compare_tbl") && is.data.frame(atn_compare_tb
 } else if (exists("ATN_compare_tbl") && is.data.frame(ATN_compare_tbl)) {
   ATN_compare_tbl
 } else {
-  read_csv_if_exists(file.path(outdir, "result", "04_sensitivity", "atn_adjusted", "primary_vs_ATN_adjusted_gene_comparison.csv"), FALSE)
+  read_csv_if_exists(file.path(outdir, "04_sensitivity", "atn_adjusted", "primary_vs_ATN_adjusted_gene_comparison.csv"), FALSE)
 }
 
 # Reactome GSEA: corrected new path first, old path second.
-gsea_reactome <- read_csv_if_exists(file.path(outdir, "result", "05_enrichment_corrected", "gsea", "main_dep_gsea_reactome_bh.csv"), FALSE)
+gsea_reactome <- read_csv_if_exists(file.path(outdir, "05_enrichment_corrected", "gsea", "main_dep_gsea_reactome_bh.csv"), FALSE)
 
 # Robustness optional.
 robustness_tbl <- if (exists("robustness_classification_tbl") && is.data.frame(robustness_classification_tbl)) {
   robustness_classification_tbl
 } else {
-  read_csv_if_exists(file.path(outdir, "result", "06_robustness", "formal_classification", "protein_robustness_classification.csv"), FALSE)
+  read_csv_if_exists(file.path(outdir, "06_robustness", "formal_classification", "protein_robustness_classification.csv"), FALSE)
 }
 
 ###############################################################################
@@ -795,10 +795,10 @@ p_volcano_compact <- make_volcano_plot(
 ) +
   labs(title = "AD-associated plasma proteomic remodeling")
 
-file_base <- file.path(outdir, "result", "final_figures", "Figure2", "Figure2a_main_volcano")
+file_base <- file.path(outdir, "final_figures", "Figure2", "Figure2a_main_volcano")
 save_gg_pdf_png_cm(p_volcano_review, file_base, PANEL_REVIEW_W_CM, PANEL_REVIEW_H_CM)
 
-source_file <- file.path(outdir, "result", "final_source_data", "Figure2", "Figure2a_main_volcano_source_data.csv")
+source_file <- file.path(outdir, "final_source_data", "Figure2", "Figure2a_main_volcano_source_data.csv")
 readr::write_csv(
   DEP %>% dplyr::select(Protein_Label, Protein_Name, EntrezGeneSymbol, AptName, logFC, adj.P.Val, minus_log10_fdr, Direction),
   source_file
@@ -1121,7 +1121,7 @@ if (!is.null(atn_compare_tbl) && nrow(atn_compare_tbl) > 0) {
                                      ", FDR<0.05=", n_atn_sig),
                       hjust = 1.04, vjust = -0.20, size = 2.1)
 
-  source_file <- file.path(outdir, "result", "final_source_data", "Figure2", "Figure2d_ATN_adjusted_attenuation_source_data.csv")
+  source_file <- file.path(outdir, "final_source_data", "Figure2", "Figure2d_ATN_adjusted_attenuation_source_data.csv")
   readr::write_csv(
     atn_plot_tbl %>%
       dplyr::select(Protein_Label, Protein_Name, EntrezGeneSymbol, AptName,
@@ -1135,7 +1135,7 @@ if (!is.null(atn_compare_tbl) && nrow(atn_compare_tbl) > 0) {
   source_file <- NA_character_
 }
 
-file_base <- file.path(outdir, "result", "final_figures", "Figure2", "Figure2d_ATN_adjusted_attenuation")
+file_base <- file.path(outdir, "final_figures", "Figure2", "Figure2d_ATN_adjusted_attenuation")
 save_gg_pdf_png_cm(p_atn_review, file_base, PANEL_REVIEW_W_CM, PANEL_REVIEW_H_CM)
 figure_manifest <- add_manifest(figure_manifest, "Figure2d_ATN_adjusted_attenuation", file_base, source_file, "Main diagnostic DEP effects compared with AT(N)-adjusted effects; interpreted as sensitivity/attenuation, not causal independence.")
 
@@ -1207,7 +1207,7 @@ if (!is.null(cdr_compare_tbl) && nrow(cdr_compare_tbl) > 0) {
     ylab = "AD-only CDR-SB slope"
   )
   
-  source_file <- file.path(outdir, "result", "final_source_data", "Figure2", "Supplementary_AD_only_CDRSB_severity_alignment_source_data.csv")
+  source_file <- file.path(outdir, "final_source_data", "Figure2", "Supplementary_AD_only_CDRSB_severity_alignment_source_data.csv")
   readr::write_csv(
     cdr_plot_tbl %>% dplyr::select(Protein_Label, Protein_Name, EntrezGeneSymbol, AptName, logFC_primary, adj.P.Val_primary, logFC_severity, adj.P.Val_severity, same_direction, primary_fdr005, severity_fdr005, severity_nominal, alignment_class, delta_slope, Direction),
     source_file
@@ -1218,7 +1218,7 @@ if (!is.null(cdr_compare_tbl) && nrow(cdr_compare_tbl) > 0) {
   source_file <- NA_character_
 }
 
-file_base <- file.path(outdir, "result", "final_figures", "Supplementary", "Supplementary_AD_only_CDRSB_severity_alignment")
+file_base <- file.path(outdir, "final_figures", "Supplementary", "Supplementary_AD_only_CDRSB_severity_alignment")
 save_gg_pdf_png_cm(p_cdr_review, file_base, PANEL_REVIEW_W_CM, PANEL_REVIEW_H_CM)
 figure_manifest <- add_manifest(figure_manifest, "Supplementary_AD_only_CDRSB_severity_alignment", file_base, source_file, "Primary AD-vs-CN effects compared with AD-only CDR-SB severity slopes; not a CDR-SB-adjusted diagnostic model.")
 
@@ -1281,7 +1281,7 @@ if (!is.null(cdrsb_adjusted_compare_tbl) && nrow(cdrsb_adjusted_compare_tbl) > 0
   ) +
     ggplot2::labs(title = "Secondary CDR-SB-adjusted diagnostic attenuation analysis")
 
-  source_file_cdrsb_adjusted <- file.path(outdir, "result", "final_source_data", "Supplementary", "Supplementary_CDRSB_adjusted_AD_vs_CN_attenuation_source_data.csv")
+  source_file_cdrsb_adjusted <- file.path(outdir, "final_source_data", "Supplementary", "Supplementary_CDRSB_adjusted_AD_vs_CN_attenuation_source_data.csv")
   readr::write_csv(
     cdrsb_adjusted_plot_tbl %>%
       dplyr::select(
@@ -1298,7 +1298,7 @@ if (!is.null(cdrsb_adjusted_compare_tbl) && nrow(cdrsb_adjusted_compare_tbl) > 0
   source_file_cdrsb_adjusted <- NA_character_
 }
 
-file_base <- file.path(outdir, "result", "final_figures", "Supplementary", "Supplementary_CDRSB_adjusted_AD_vs_CN_attenuation")
+file_base <- file.path(outdir, "final_figures", "Supplementary", "Supplementary_CDRSB_adjusted_AD_vs_CN_attenuation")
 save_gg_pdf_png_cm(p_cdrsb_adjusted_review, file_base, PANEL_REVIEW_W_CM, PANEL_REVIEW_H_CM)
 figure_manifest <- add_manifest(figure_manifest, "Supplementary_CDRSB_adjusted_AD_vs_CN_attenuation", file_base, source_file_cdrsb_adjusted, "Secondary diagnostic attenuation model comparing primary AD-vs-CN effects with AD-vs-CN effects additionally adjusted for CDR-SB; not a within-AD severity model.")
 
@@ -1362,7 +1362,7 @@ if (!is.null(main_vs_loco_mean) && nrow(main_vs_loco_mean) > 0) {
   ) +
     labs(title = "Country-exclusion stability of protein effects")
   
-  source_file <- file.path(outdir, "result", "final_source_data", "Figure2", "Figure2f_LOCO_stability_source_data.csv")
+  source_file <- file.path(outdir, "final_source_data", "Figure2", "Figure2f_LOCO_stability_source_data.csv")
   readr::write_csv(
     loco_plot_tbl %>% dplyr::select(Protein_Label, AptName, main_logFC, main_adj.P.Val, mean_loco_logFC, loco_delta, Direction),
     source_file
@@ -1373,7 +1373,7 @@ if (!is.null(main_vs_loco_mean) && nrow(main_vs_loco_mean) > 0) {
   source_file <- NA_character_
 }
 
-file_base <- file.path(outdir, "result", "final_figures", "Figure2", "Figure2f_LOCO_stability")
+file_base <- file.path(outdir, "final_figures", "Figure2", "Figure2f_LOCO_stability")
 save_gg_pdf_png_cm(p_loco_review, file_base, PANEL_REVIEW_W_CM, PANEL_REVIEW_H_CM)
 figure_manifest <- add_manifest(figure_manifest, "Figure2f_LOCO_stability", file_base, source_file, "Protein-level main model versus mean leave-one-country-out effect.")
 
@@ -1387,7 +1387,7 @@ figure_manifest <- add_manifest(figure_manifest, "Figure2f_LOCO_stability", file
 # LOCO scatter: here each point is one excluded country.
 
 loco_summary_main <- read_csv_if_exists(
-  file.path(outdir, "result", "06_robustness", "country_loco", "tables", "LOCO_summary_metrics.csv"),
+  file.path(outdir, "06_robustness", "country_loco", "tables", "LOCO_summary_metrics.csv"),
   show_message = FALSE
 )
 
@@ -1457,7 +1457,7 @@ if (!is.null(loco_summary_main) && nrow(loco_summary_main) > 0) {
     p_loco_context_review <- make_loco_context_plot(loco_context_tbl, compact = FALSE)
     p_loco_context_compact <- make_loco_context_plot(loco_context_tbl, compact = TRUE)
 
-    source_file <- file.path(outdir, "result", "final_source_data", "Figure2", "Figure2e_contextual_country_exclusion_source_data.csv")
+    source_file <- file.path(outdir, "final_source_data", "Figure2", "Figure2e_contextual_country_exclusion_source_data.csv")
     readr::write_csv(loco_context_tbl, source_file)
 
   } else {
@@ -1471,7 +1471,7 @@ if (!is.null(loco_summary_main) && nrow(loco_summary_main) > 0) {
   source_file <- NA_character_
 }
 
-file_base <- file.path(outdir, "result", "final_figures", "Figure2", "Figure2e_contextual_country_exclusion")
+file_base <- file.path(outdir, "final_figures", "Figure2", "Figure2e_contextual_country_exclusion")
 save_gg_pdf_png_cm(p_loco_context_review, file_base, PANEL_REVIEW_W_CM, PANEL_REVIEW_H_CM)
 figure_manifest <- add_manifest(
   figure_manifest,
@@ -1755,22 +1755,22 @@ if (length(trait_vars) == 0) {
   
   save_complex_heatmap_pdf_png(
     heat_full$ht,
-    file.path(outdir, "result", "final_figures", "Figure2", "Figure2c_representative_heatmap_full.pdf"),
-    file.path(outdir, "result", "final_figures", "Figure2", "Figure2c_representative_heatmap_full.png"),
+    file.path(outdir, "final_figures", "Figure2", "Figure2c_representative_heatmap_full.pdf"),
+    file.path(outdir, "final_figures", "Figure2", "Figure2c_representative_heatmap_full.png"),
     width_cm = 18,
     height_cm = 14,
     dpi = 600,
     padding = grid::unit(c(5, 5, 5, 5), "mm")
   )
   
-  heatmap_source_file <- file.path(outdir, "result", "final_source_data", "Figure2", "Figure2c_representative_heatmap_source_data.csv")
+  heatmap_source_file <- file.path(outdir, "final_source_data", "Figure2", "Figure2c_representative_heatmap_source_data.csv")
   readr::write_csv(
     heat_full$cor_long %>%
       dplyr::select(protein_display, AptName, trait, trait_display, n, rho, p_value, q_value_bh, main_logFC, main_adjP, main_type, apoe_status, cdr_status),
     heatmap_source_file
   )
   
-  heatmap_selection_file <- file.path(outdir, "result", "final_source_data", "Figure2", "Figure2c_representative_heatmap_selected_proteins.csv")
+  heatmap_selection_file <- file.path(outdir, "final_source_data", "Figure2", "Figure2c_representative_heatmap_selected_proteins.csv")
   readr::write_csv(heat_full$protein_map, heatmap_selection_file)
   
   heatmap_grob_compact <- patchwork::wrap_elements(
@@ -1786,7 +1786,7 @@ if (length(trait_vars) == 0) {
   figure_manifest <- add_manifest(
     figure_manifest,
     "Figure2c_representative_heatmap_full",
-    file.path(outdir, "result", "final_figures", "Figure2", "Figure2c_representative_heatmap_full"),
+    file.path(outdir, "final_figures", "Figure2", "Figure2c_representative_heatmap_full"),
     heatmap_source_file,
     "Full 12-protein heatmap saved separately and used in composite."
   )
@@ -1815,7 +1815,7 @@ figure2_composite <- (
     )
   )
 
-file_base <- file.path(outdir, "result", "final_figures", "Figure2", "Figure2_composite_18cm_optimized")
+file_base <- file.path(outdir, "final_figures", "Figure2", "Figure2_composite_18cm_optimized")
 save_gg_pdf_png_cm(figure2_composite, file_base, width_cm = COMPOSITE_WIDTH_CM, height_cm = COMPOSITE_HEIGHT_CM, dpi = 600, limitsize = FALSE)
 figure_manifest <- add_manifest(figure_manifest, "Figure2_composite_18cm_optimized", file_base, "See individual panel source-data files", "Composite optimized for final 18-cm width.")
 
@@ -1870,7 +1870,7 @@ p_s1f <- if (!is.na(age_var))     make_pca_plot(normalized_expr_plot, seq_cols_p
 supp_s1 <- (p_s1a + p_s1b + p_s1c) / (p_s1d + p_s1e + p_s1f) +
   patchwork::plot_annotation(tag_levels = "a", theme = ggplot2::theme(plot.tag = ggplot2::element_text(size = 12, face = "bold")))
 
-file_base <- file.path(outdir, "result", "final_figures", "Supplementary", "Supplementary_Fig_S1_PCA_QC")
+file_base <- file.path(outdir, "final_figures", "Supplementary", "Supplementary_Fig_S1_PCA_QC")
 save_gg_pdf_png_cm(supp_s1, file_base, width_cm = 18, height_cm = 16, dpi = 600)
 figure_manifest <- add_manifest(figure_manifest, "Supplementary_Fig_S1_PCA_QC", file_base, NA_character_, "PCA QC panels colored by available technical and biological variables.")
 
@@ -1906,9 +1906,9 @@ if (!is.null(apoe_compare_tbl) && nrow(apoe_compare_tbl) > 0) {
   p_apoe_supp <- make_direction_scatter(apoe_plot_tbl, "logFC_primary", "logFC_secondary", label_df = label_apoe, compact = FALSE, xlab = "Main-model log2FC", ylab = "APOE-adjusted log2FC") +
     labs(title = "APOE sensitivity analysis")
   
-  file_base <- file.path(outdir, "result", "final_figures", "Supplementary", "Supplementary_Fig_S2_APOE_sensitivity")
+  file_base <- file.path(outdir, "final_figures", "Supplementary", "Supplementary_Fig_S2_APOE_sensitivity")
   save_gg_pdf_png_cm(p_apoe_supp, file_base, width_cm = 18, height_cm = 13, dpi = 600)
-  source_file <- file.path(outdir, "result", "final_source_data", "Supplementary", "Supplementary_Fig_S2_APOE_sensitivity_source_data.csv")
+  source_file <- file.path(outdir, "final_source_data", "Supplementary", "Supplementary_Fig_S2_APOE_sensitivity_source_data.csv")
   readr::write_csv(apoe_plot_tbl, source_file)
   figure_manifest <- add_manifest(figure_manifest, "Supplementary_Fig_S2_APOE_sensitivity", file_base, source_file, "Main DEP versus APOE-adjusted DEP.")
 }
@@ -1941,9 +1941,9 @@ if (!is.null(atn_compare_tbl) && nrow(atn_compare_tbl) > 0) {
   p_atn_supp <- make_direction_scatter(atn_plot_tbl, "logFC_primary", "logFC_atn", label_df = label_atn, compact = FALSE, xlab = "Main-model log2FC", ylab = "AT(N)-adjusted log2FC") +
     labs(title = "AT(N)-adjusted sensitivity analysis")
   
-  file_base <- file.path(outdir, "result", "final_figures", "Supplementary", "Supplementary_Fig_S3_ATN_adjusted_sensitivity")
+  file_base <- file.path(outdir, "final_figures", "Supplementary", "Supplementary_Fig_S3_ATN_adjusted_sensitivity")
   save_gg_pdf_png_cm(p_atn_supp, file_base, width_cm = 18, height_cm = 13, dpi = 600)
-  source_file <- file.path(outdir, "result", "final_source_data", "Supplementary", "Supplementary_Fig_S3_ATN_adjusted_sensitivity_source_data.csv")
+  source_file <- file.path(outdir, "final_source_data", "Supplementary", "Supplementary_Fig_S3_ATN_adjusted_sensitivity_source_data.csv")
   readr::write_csv(atn_plot_tbl, source_file)
   figure_manifest <- add_manifest(figure_manifest, "Supplementary_Fig_S3_ATN_adjusted_sensitivity", file_base, source_file, "Main DEP versus AT(N)-adjusted DEP; covariates include p-tau217, NfL and Aβ42/40 when available.")
 }
@@ -1976,24 +1976,24 @@ if (!is.null(vascular_compare_tbl) && nrow(vascular_compare_tbl) > 0) {
   p_vascular_supp <- make_direction_scatter(vascular_plot_tbl, "logFC_primary", "logFC_vascular", label_df = label_vascular, compact = FALSE, xlab = "Main-model log2FC", ylab = "Vascular/metabolic-adjusted log2FC") +
     labs(title = "Vascular/metabolic sensitivity analysis")
   
-  file_base <- file.path(outdir, "result", "final_figures", "Supplementary", "Supplementary_Fig_S4_vascular_metabolic_sensitivity")
+  file_base <- file.path(outdir, "final_figures", "Supplementary", "Supplementary_Fig_S4_vascular_metabolic_sensitivity")
   save_gg_pdf_png_cm(p_vascular_supp, file_base, width_cm = 18, height_cm = 13, dpi = 600)
-  source_file <- file.path(outdir, "result", "final_source_data", "Supplementary", "Supplementary_Fig_S4_vascular_metabolic_sensitivity_source_data.csv")
+  source_file <- file.path(outdir, "final_source_data", "Supplementary", "Supplementary_Fig_S4_vascular_metabolic_sensitivity_source_data.csv")
   readr::write_csv(vascular_plot_tbl, source_file)
   figure_manifest <- add_manifest(figure_manifest, "Supplementary_Fig_S4_vascular_metabolic_sensitivity", file_base, source_file, "Main DEP versus vascular/metabolic-adjusted DEP.")
 }
 
 if (exists("p_cdr_review")) {
-  file_base <- file.path(outdir, "result", "final_figures", "Supplementary", "Supplementary_Fig_S5_AD_only_CDRSB_severity_alignment")
+  file_base <- file.path(outdir, "final_figures", "Supplementary", "Supplementary_Fig_S5_AD_only_CDRSB_severity_alignment")
   save_gg_pdf_png_cm(p_cdr_review, file_base, width_cm = 18, height_cm = 13, dpi = 600)
-  figure_manifest <- add_manifest(figure_manifest, "Supplementary_Fig_S5_AD_only_CDRSB_severity_alignment", file_base, file.path(outdir, "result", "final_source_data", "Figure2", "Supplementary_AD_only_CDRSB_severity_alignment_source_data.csv"), "Full-size version of the AD-only CDR-SB severity alignment panel.")
+  figure_manifest <- add_manifest(figure_manifest, "Supplementary_Fig_S5_AD_only_CDRSB_severity_alignment", file_base, file.path(outdir, "final_source_data", "Figure2", "Supplementary_AD_only_CDRSB_severity_alignment_source_data.csv"), "Full-size version of the AD-only CDR-SB severity alignment panel.")
 }
 
 ###############################################################################
 # 14_supplementary_country_robustness
 ###############################################################################
 
-loco_summary <- read_csv_if_exists(file.path(outdir, "result", "06_robustness", "country_loco", "tables", "LOCO_summary_metrics.csv"), show_message = FALSE)
+loco_summary <- read_csv_if_exists(file.path(outdir, "06_robustness", "country_loco", "tables", "LOCO_summary_metrics.csv"), show_message = FALSE)
 
 if (!is.null(loco_summary) && nrow(loco_summary) > 0) {
   loco_summary <- rename_with_candidates(loco_summary, list(excluded_country = c("excluded_country", "country", "Country"), logFC_correlation = c("logFC_correlation", "correlation", "r"), direction_consistency = c("direction_consistency", "direction_consistency_all", "direction_consistency_rate")))
@@ -2006,15 +2006,15 @@ if (!is.null(loco_summary) && nrow(loco_summary) > 0) {
       labs(title = "Leave-one-country-out stability", x = "Excluded country", y = "Correlation with main log2FC") +
       theme_panel_review(base_size = 10.5)
     
-    file_base <- file.path(outdir, "result", "final_figures", "Supplementary", "Supplementary_Fig_S6_LOCO_summary")
+    file_base <- file.path(outdir, "final_figures", "Supplementary", "Supplementary_Fig_S6_LOCO_summary")
     save_gg_pdf_png_cm(p_loco_summary, file_base, width_cm = 18, height_cm = 11, dpi = 600)
-    source_file <- file.path(outdir, "result", "final_source_data", "Supplementary", "Supplementary_Fig_S6_LOCO_summary_source_data.csv")
+    source_file <- file.path(outdir, "final_source_data", "Supplementary", "Supplementary_Fig_S6_LOCO_summary_source_data.csv")
     readr::write_csv(loco_summary, source_file)
     figure_manifest <- add_manifest(figure_manifest, "Supplementary_Fig_S6_LOCO_summary", file_base, source_file, "Summary metrics for leave-one-country-out sensitivity.")
   }
 }
 
-balanced_summary <- read_csv_if_exists(file.path(outdir, "result", "06_robustness", "balanced_country_resampling", "tables", "balanced_resampling_summary_metrics.csv"), show_message = FALSE)
+balanced_summary <- read_csv_if_exists(file.path(outdir, "06_robustness", "balanced_country_resampling", "tables", "balanced_resampling_summary_metrics.csv"), show_message = FALSE)
 
 if (!is.null(balanced_summary) && nrow(balanced_summary) > 0) {
   balanced_summary <- rename_with_candidates(
@@ -2040,9 +2040,9 @@ if (!is.null(balanced_summary) && nrow(balanced_summary) > 0) {
       theme_panel_review(base_size = 10.5) +
       theme(axis.text.x = element_text(angle = 20, hjust = 1))
     
-    file_base <- file.path(outdir, "result", "final_figures", "Supplementary", "Supplementary_Fig_S7_balanced_resampling")
+    file_base <- file.path(outdir, "final_figures", "Supplementary", "Supplementary_Fig_S7_balanced_resampling")
     save_gg_pdf_png_cm(p_balanced, file_base, width_cm = 18, height_cm = 11, dpi = 600)
-    source_file <- file.path(outdir, "result", "final_source_data", "Supplementary", "Supplementary_Fig_S7_balanced_resampling_source_data.csv")
+    source_file <- file.path(outdir, "final_source_data", "Supplementary", "Supplementary_Fig_S7_balanced_resampling_source_data.csv")
     readr::write_csv(balanced_summary, source_file)
     figure_manifest <- add_manifest(figure_manifest, "Supplementary_Fig_S7_balanced_resampling", file_base, source_file, "Distribution of robustness metrics across balanced resampling iterations.")
   }
@@ -2060,9 +2060,9 @@ if (!is.null(robustness_tbl) && nrow(robustness_tbl) > 0) {
       labs(title = "Formal robustness classification", x = NULL, y = "Number of proteins") +
       theme_panel_review(base_size = 10.5)
     
-    file_base <- file.path(outdir, "result", "final_figures", "Supplementary", "Supplementary_Fig_S8_robustness_classification")
+    file_base <- file.path(outdir, "final_figures", "Supplementary", "Supplementary_Fig_S8_robustness_classification")
     save_gg_pdf_png_cm(p_robust, file_base, width_cm = 18, height_cm = 10, dpi = 600)
-    source_file <- file.path(outdir, "result", "final_source_data", "Supplementary", "Supplementary_Fig_S8_robustness_classification_source_data.csv")
+    source_file <- file.path(outdir, "final_source_data", "Supplementary", "Supplementary_Fig_S8_robustness_classification_source_data.csv")
     readr::write_csv(robustness_tbl, source_file)
     figure_manifest <- add_manifest(figure_manifest, "Supplementary_Fig_S8_robustness_classification", file_base, source_file, "Formal protein-level robustness classification from Script 01.")
   }
@@ -2072,14 +2072,14 @@ if (!is.null(robustness_tbl) && nrow(robustness_tbl) > 0) {
 # 15_export_manifest_and_session
 ###############################################################################
 
-manifest_file <- file.path(outdir, "result", "final_figures", "figure_manifest.csv")
+manifest_file <- file.path(outdir, "final_figures", "figure_manifest.csv")
 readr::write_csv(figure_manifest, manifest_file)
 
-writeLines(capture.output(utils::sessionInfo()), con = file.path(outdir, "result", "final_figures", "logs", "script02_sessionInfo.txt"))
+writeLines(capture.output(utils::sessionInfo()), con = file.path(outdir, "final_figures", "logs", "script02_sessionInfo.txt"))
 
 cat("\nSCRIPT 02 COMPLETE.\n")
 cat("Figure manifest:\n", manifest_file, "\n")
-cat("Main Figure 2 composite:\n", file.path(outdir, "result", "final_figures", "Figure2", "Figure2_composite_18cm_optimized.pdf"), "\n")
+cat("Main Figure 2 composite:\n", file.path(outdir, "final_figures", "Figure2", "Figure2_composite_18cm_optimized.pdf"), "\n")
 ###############################################################################
 # END SCRIPT 02
 ###############################################################################
