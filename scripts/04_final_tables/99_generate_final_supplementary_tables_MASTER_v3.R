@@ -66,8 +66,8 @@ suppressPackageStartupMessages({
 # 01. Paths - EDIT ONLY THESE IF NEEDED
 ###############################################################################
 
-DEP_PROJECT_ROOT <- "C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2"
-WGCNA_PROJECT_ROOT <- "C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2"
+DEP_PROJECT_ROOT <- file.path(PROJECT_ROOT, "results", "DEP")
+WGCNA_PROJECT_ROOT <- file.path(PROJECT_ROOT, "results", "WGCNA")
 
 OUT_DIR <- file.path(
   DEP_PROJECT_ROOT,

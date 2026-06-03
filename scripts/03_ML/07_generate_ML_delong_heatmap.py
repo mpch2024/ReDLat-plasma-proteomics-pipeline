@@ -8,7 +8,7 @@ import seaborn as sns
 # PATHS
 # =====================================================
 
-PROJECT_DIR=r"C:\Clasificacion"
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 RESULTS_DIR=rf"{PROJECT_DIR}\Graficos\DeLong"
 os.makedirs(RESULTS_DIR,exist_ok=True)
 

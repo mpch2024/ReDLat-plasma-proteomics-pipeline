@@ -40,7 +40,7 @@ np.random.seed(RANDOM_STATE)
 # PATHS
 # -----------------------------------------------------
 
-PROJECT_DIR = r"C:\Clasificacion"
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA_DIR = rf"{PROJECT_DIR}\Data"
 RESULTS_DIR = rf"{PROJECT_DIR}\Results_proteins_Matched"
 os.makedirs(RESULTS_DIR, exist_ok=True)

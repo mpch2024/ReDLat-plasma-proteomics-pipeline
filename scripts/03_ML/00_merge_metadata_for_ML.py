@@ -1,6 +1,6 @@
 import pandas as pd
 
-PROJECT_DIR = r"C:\Clasificacion"
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 DATA_DIR = rf"{PROJECT_DIR}\Data"
 

@@ -9,7 +9,7 @@ from matplotlib.patches import FancyBboxPatch
 # PATHS
 # =====================================================
 
-PROJECT_DIR = r"C:\Clasificacion"
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 #RESULTS_DIR = rf"{PROJECT_DIR}\Graficos\Soma"
 #ROC_FILE = rf"{PROJECT_DIR}\Results_proteins\roc_curves.csv"
 #PERM_FILE = rf"{PROJECT_DIR}\Results_proteins\permutation_importance.csv"
