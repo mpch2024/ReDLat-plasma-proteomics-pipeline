@@ -69,9 +69,7 @@ suppressPackageStartupMessages({
 DEP_PROJECT_ROOT <- file.path(PROJECT_ROOT, "results", "DEP")
 WGCNA_PROJECT_ROOT <- file.path(PROJECT_ROOT, "results", "WGCNA")
 
-OUT_DIR <- file.path(
-  DEP_PROJECT_ROOT,
-  "result",
+OUT_DIR <- file.path(DEP_PROJECT_ROOT,
   "final_supplementary_tables"
 )
 
@@ -374,15 +372,11 @@ write_table_sheet <- function(wb, sheet_name, df, title, note = NULL) {
 #
 # Older reviewer-facing versions are retained as fallbacks, but the script now
 # searches the manuscript-ready directory first.
-MANUSCRIPT_SENS_DIR <- file.path(
-  DEP_PROJECT_ROOT,
-  "result",
+MANUSCRIPT_SENS_DIR <- file.path(DEP_PROJECT_ROOT,
   "08_manuscript_supplementary_sensitivity"
 )
 
-REVIEWER_AGUSTIN_DIR <- file.path(
-  DEP_PROJECT_ROOT,
-  "result",
+REVIEWER_AGUSTIN_DIR <- file.path(DEP_PROJECT_ROOT,
   "08_reviewer_agustin"
 )
 
@@ -403,7 +397,7 @@ REVIEWER_SENS_XLSX <- c(
   file.path(REVIEWER_AGUSTIN_DIR, "Reviewer_Sensitivity_DEP_Results.xlsx")
 )
 
-DEP_ROOT <- file.path(DEP_PROJECT_ROOT, "result")
+DEP_ROOT <- DEP_PROJECT_ROOT
 DEP_GENE_DIR <- file.path(DEP_ROOT, "03_dep", "gene_collapsed")
 DEP_FDR_DIR <- file.path(DEP_GENE_DIR, "FDR_specific")
 GSEA_DIR <- file.path(DEP_ROOT, "05_enrichment_corrected", "gsea")
@@ -411,12 +405,12 @@ ORA_DIR  <- file.path(DEP_ROOT, "05_enrichment_corrected", "ora")
 SENS_DIR <- file.path(DEP_ROOT, "04_sensitivity")
 ROBUST_DIR <- file.path(DEP_ROOT, "06_robustness")
 
-WGCNA_SCRIPT1 <- file.path(WGCNA_PROJECT_ROOT, "results", "01_define_wgcna_input_from_DEP")
-WGCNA_SCRIPT2 <- file.path(WGCNA_PROJECT_ROOT, "results", "02_WGCNA_core_collapsed_genes")
-WGCNA_SCRIPT3 <- file.path(WGCNA_PROJECT_ROOT, "results", "03_WGCNA_module_biology_hubs_enrichment")
-WGCNA_SCRIPT4 <- file.path(WGCNA_PROJECT_ROOT, "results", "04_WGCNA_module_trait_clinical_integration")
-WGCNA_SCRIPT4B <- file.path(WGCNA_PROJECT_ROOT, "results", "04b_WGCNA_country_categorical_reviewer")
-WGCNA_SCRIPT5 <- file.path(WGCNA_PROJECT_ROOT, "results", "05_WGCNA_country_site_downsampling_sensitivity")
+WGCNA_SCRIPT1 <- file.path(WGCNA_PROJECT_ROOT, "01_define_wgcna_input_from_DEP")
+WGCNA_SCRIPT2 <- file.path(WGCNA_PROJECT_ROOT, "02_WGCNA_core_collapsed_genes")
+WGCNA_SCRIPT3 <- file.path(WGCNA_PROJECT_ROOT, "03_WGCNA_module_biology_hubs_enrichment")
+WGCNA_SCRIPT4 <- file.path(WGCNA_PROJECT_ROOT, "04_WGCNA_module_trait_clinical_integration")
+WGCNA_SCRIPT4B <- file.path(WGCNA_PROJECT_ROOT, "04b_WGCNA_country_categorical_reviewer")
+WGCNA_SCRIPT5 <- file.path(WGCNA_PROJECT_ROOT, "05_WGCNA_country_site_downsampling_sensitivity")
 
 ###############################################################################
 # 04. Table plan - ordered by manuscript appearance
