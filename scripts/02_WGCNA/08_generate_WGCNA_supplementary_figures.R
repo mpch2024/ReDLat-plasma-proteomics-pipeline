@@ -1,3 +1,11 @@
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+PROJECT_ROOT <- here::here()
+
 ##############################################################################
 # 07_wgcna_supplementary_figures_FINAL_v2.R
 #
@@ -202,14 +210,14 @@ save_pub_both <- function(plot_obj, filename_base, dims = c(8, 6)) {
 # 3) PATHS
 ##############################################################################
 
-BASE_DIR <- "C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2"
+BASE_DIR <- file.path(PROJECT_ROOT, "results", "WGCNA")
 
-SCRIPT2_DIR <- file.path(BASE_DIR, "results", "02_WGCNA_core_collapsed_genes")
-SCRIPT3_DIR <- file.path(BASE_DIR, "results", "03_WGCNA_module_biology_hubs_enrichment")
-SCRIPT4_DIR <- file.path(BASE_DIR, "results", "04_WGCNA_module_trait_clinical_integration")
-SCRIPT5_DIR <- file.path(BASE_DIR, "results", "05_WGCNA_country_site_downsampling_sensitivity")
+SCRIPT2_DIR <- file.path(BASE_DIR, "02_WGCNA_core_collapsed_genes")
+SCRIPT3_DIR <- file.path(BASE_DIR, "03_WGCNA_module_biology_hubs_enrichment")
+SCRIPT4_DIR <- file.path(BASE_DIR, "04_WGCNA_module_trait_clinical_integration")
+SCRIPT5_DIR <- file.path(BASE_DIR, "05_WGCNA_country_site_downsampling_sensitivity")
 
-OUTDIR <- file.path(BASE_DIR, "results", "07_wgcna_supplementary_figures")
+OUTDIR <- file.path(BASE_DIR, "07_wgcna_supplementary_figures")
 OUT_FIG <- file.path(OUTDIR, "figures")
 OUT_TAB <- file.path(OUTDIR, "tables")
 OUT_PANEL <- file.path(OUTDIR, "separate_panels")

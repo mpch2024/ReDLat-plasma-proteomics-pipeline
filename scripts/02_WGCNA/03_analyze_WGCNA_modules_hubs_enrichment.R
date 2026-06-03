@@ -1,3 +1,11 @@
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+PROJECT_ROOT <- here::here()
+
 ##############################################################################
 # 03_WGCNA_module_biology_hubs_enrichment_FINAL_v4.R
 #
@@ -104,11 +112,9 @@ options(error = traceback)
 # 2) PATHS
 ###############################################################################
 
-base_dir <- "C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2"
+base_dir <- file.path(PROJECT_ROOT, "results", "WGCNA")
 
-core_dir <- file.path(
-  base_dir,
-  "results",
+core_dir <- file.path(base_dir,
   "02_WGCNA_core_collapsed_genes"
 )
 
@@ -124,9 +130,7 @@ gene_module_file <- file.path(
   "gene_module_assignment.csv"
 )
 
-outdir <- file.path(
-  base_dir,
-  "results",
+outdir <- file.path(base_dir,
   "03_WGCNA_module_biology_hubs_enrichment"
 )
 

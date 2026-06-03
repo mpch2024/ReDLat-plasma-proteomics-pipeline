@@ -1,3 +1,11 @@
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+PROJECT_ROOT <- here::here()
+
 ###############################################################################
 # 04_WGCNA_module_trait_clinical_integration_FINAL_v6.R
 #
@@ -31,7 +39,6 @@
 #     results/03_WGCNA_module_biology_hubs_enrichment/tables/enrichment_summary_by_module.csv
 #
 #   DEP clean pipeline:
-#     C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2/result/03_dep/gene_collapsed/
 #       AD_vs_CN_full_limma_results_gene_collapsed.csv
 #
 #   Metadata:
@@ -101,24 +108,18 @@ options(error = traceback)
 # 2) PATHS
 ###############################################################################
 
-BASE_DIR <- "C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2"
-DEP_PROJECT_ROOT <- "C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2"
+BASE_DIR <- file.path(PROJECT_ROOT, "results", "WGCNA")
+DEP_PROJECT_ROOT <- file.path(PROJECT_ROOT, "results", "DEP")
 
-SCRIPT1_DIR <- file.path(
-  BASE_DIR,
-  "results",
+SCRIPT1_DIR <- file.path(BASE_DIR,
   "01_define_wgcna_input_from_DEP"
 )
 
-SCRIPT2_DIR <- file.path(
-  BASE_DIR,
-  "results",
+SCRIPT2_DIR <- file.path(BASE_DIR,
   "02_WGCNA_core_collapsed_genes"
 )
 
-SCRIPT3_DIR <- file.path(
-  BASE_DIR,
-  "results",
+SCRIPT3_DIR <- file.path(BASE_DIR,
   "03_WGCNA_module_biology_hubs_enrichment"
 )
 
@@ -151,17 +152,13 @@ ENRICHMENT_SUMMARY_FILE <- file.path(
   "enrichment_summary_by_module.csv"
 )
 
-DEP_FILE <- file.path(
-  DEP_PROJECT_ROOT,
-  "result",
+DEP_FILE <- file.path(DEP_PROJECT_ROOT,
   "03_dep",
   "gene_collapsed",
   "AD_vs_CN_full_limma_results_gene_collapsed.csv"
 )
 
-OUTDIR <- file.path(
-  BASE_DIR,
-  "results",
+OUTDIR <- file.path(BASE_DIR,
   "04_WGCNA_module_trait_clinical_integration"
 )
 

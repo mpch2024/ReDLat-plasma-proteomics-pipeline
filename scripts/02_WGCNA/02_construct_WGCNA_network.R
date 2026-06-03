@@ -1,3 +1,11 @@
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+PROJECT_ROOT <- here::here()
+
 ###############################################################################
 # 02_wgcna_network_construction_FINAL_v2.R
 #
@@ -77,17 +85,13 @@ WGCNA::allowWGCNAThreads()
 # 2) PATHS
 ###############################################################################
 
-base_dir <- "C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2"
+base_dir <- file.path(PROJECT_ROOT, "results", "WGCNA")
 
-input_dir <- file.path(
-  base_dir,
-  "results",
+input_dir <- file.path(base_dir,
   "01_define_wgcna_input_from_DEP"
 )
 
-outdir <- file.path(
-  base_dir,
-  "results",
+outdir <- file.path(base_dir,
   "02_WGCNA_core_collapsed_genes"
 )
 

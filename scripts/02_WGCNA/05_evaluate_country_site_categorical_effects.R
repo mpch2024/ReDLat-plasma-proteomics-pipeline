@@ -1,3 +1,11 @@
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+PROJECT_ROOT <- here::here()
+
 ###############################################################################
 # 04b_WGCNA_country_categorical_reviewer_analysis.R
 #
@@ -68,11 +76,11 @@ options(error = traceback)
 ###############################################################################
 
 # Edit this only if your WGCNA folder is somewhere else.
-BASE_DIR <- "C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2"
+BASE_DIR <- file.path(PROJECT_ROOT, "results", "WGCNA")
 
-SCRIPT1_DIR <- file.path(BASE_DIR, "results", "01_define_wgcna_input_from_DEP")
-SCRIPT2_DIR <- file.path(BASE_DIR, "results", "02_WGCNA_core_collapsed_genes")
-SCRIPT4_DIR <- file.path(BASE_DIR, "results", "04_WGCNA_module_trait_clinical_integration")
+SCRIPT1_DIR <- file.path(BASE_DIR, "01_define_wgcna_input_from_DEP")
+SCRIPT2_DIR <- file.path(BASE_DIR, "02_WGCNA_core_collapsed_genes")
+SCRIPT4_DIR <- file.path(BASE_DIR, "04_WGCNA_module_trait_clinical_integration")
 
 EIGENGENE_FILE <- file.path(
   SCRIPT2_DIR, "eigengenes", "module_eigengenes_per_sample.csv"
@@ -86,8 +94,7 @@ MODULE_TRAIT_FILE <- file.path(
   SCRIPT4_DIR, "tables", "module_trait_results_long.csv"
 )
 
-OUTDIR <- file.path(
-  BASE_DIR, "results", "04b_WGCNA_country_categorical_reviewer"
+OUTDIR <- file.path(BASE_DIR, "04b_WGCNA_country_categorical_reviewer"
 )
 
 OUT_TABLES <- file.path(OUTDIR, "tables")

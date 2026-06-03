@@ -17,10 +17,8 @@
 #   gene-collapsed DEP table from the cleaned DEP pipeline.
 #
 # Source DEP project:
-#   C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2
 #
 # WGCNA project generated from zero here:
-#   C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2
 #
 # OUTPUTS EXPECTED BY SCRIPT 02
 #   results/01_define_wgcna_input_from_DEP/gene_collapsed_expression_matrix.csv

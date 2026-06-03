@@ -1,3 +1,11 @@
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+PROJECT_ROOT <- here::here()
+
 ###############################################################################
 # 05_WGCNA_country_site_downsampling_sensitivity_FINAL_v2.R
 #
@@ -76,23 +84,17 @@ options(error = traceback)
 # 2) PATHS
 ###############################################################################
 
-BASE_DIR <- "C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2"
+BASE_DIR <- file.path(PROJECT_ROOT, "results", "WGCNA")
 
-SCRIPT1_DIR <- file.path(
-  BASE_DIR,
-  "results",
+SCRIPT1_DIR <- file.path(BASE_DIR,
   "01_define_wgcna_input_from_DEP"
 )
 
-SCRIPT2_DIR <- file.path(
-  BASE_DIR,
-  "results",
+SCRIPT2_DIR <- file.path(BASE_DIR,
   "02_WGCNA_core_collapsed_genes"
 )
 
-SCRIPT4_DIR <- file.path(
-  BASE_DIR,
-  "results",
+SCRIPT4_DIR <- file.path(BASE_DIR,
   "04_WGCNA_module_trait_clinical_integration"
 )
 
@@ -119,9 +121,7 @@ PRIORITIZATION_FILE <- file.path(
   "final_module_prioritization_table.csv"
 )
 
-OUTDIR <- file.path(
-  BASE_DIR,
-  "results",
+OUTDIR <- file.path(BASE_DIR,
   "05_WGCNA_country_site_downsampling_sensitivity"
 )
 

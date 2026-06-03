@@ -1,3 +1,11 @@
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+PROJECT_ROOT <- here::here()
+
 ###############################################################################
 # 08_wgcna_output_inventory_and_legends_FINAL_v2.R
 #
@@ -51,10 +59,10 @@ options(error = traceback)
 # 2) PATHS
 ###############################################################################
 
-BASE_DIR <- "C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2"
+BASE_DIR <- file.path(PROJECT_ROOT, "results", "WGCNA")
 
-SCRIPT06_DIR <- file.path(BASE_DIR, "results", "06_wgcna_figure3_main")
-SCRIPT07_DIR <- file.path(BASE_DIR, "results", "07_wgcna_supplementary_figures")
+SCRIPT06_DIR <- file.path(BASE_DIR, "06_wgcna_figure3_main")
+SCRIPT07_DIR <- file.path(BASE_DIR, "07_wgcna_supplementary_figures")
 
 SCRIPT06_FIG_DIR <- file.path(SCRIPT06_DIR, "figures")
 SCRIPT06_TAB_DIR <- file.path(SCRIPT06_DIR, "tables")
@@ -64,7 +72,7 @@ SCRIPT07_FIG_DIR <- file.path(SCRIPT07_DIR, "figures")
 SCRIPT07_TAB_DIR <- file.path(SCRIPT07_DIR, "tables")
 SCRIPT07_PANEL_DIR <- file.path(SCRIPT07_DIR, "separate_panels")
 
-OUTDIR <- file.path(BASE_DIR, "results", "08_wgcna_output_inventory_and_legends")
+OUTDIR <- file.path(BASE_DIR, "08_wgcna_output_inventory_and_legends")
 OUT_TAB <- file.path(OUTDIR, "tables")
 OUT_TXT <- file.path(OUTDIR, "legends")
 

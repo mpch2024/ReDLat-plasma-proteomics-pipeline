@@ -1,3 +1,11 @@
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+PROJECT_ROOT <- here::here()
+
 ###############################################################################
 # 06_6_wgcna_figure3_main_NatureAging_balanced_panels.R
 #
@@ -20,7 +28,6 @@
 #
 # IMPORTANT:
 # Adapted to:
-#   C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2
 #
 # Core modules for trait/prioritization visualization:
 #   black, brown, yellow
@@ -197,14 +204,14 @@ save_pub_both <- function(plot_obj, filename_base, dims = FIG_DIMS$wide_medium) 
 # 3) PATHS
 ##############################################################################
 
-BASE_DIR <- "C:/Users/mnpiz/Desktop/WGCNA_Workflow_april_V2"
-DEP_PROJECT_ROOT <- "C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2"
+BASE_DIR <- file.path(PROJECT_ROOT, "results", "WGCNA")
+DEP_PROJECT_ROOT <- file.path(PROJECT_ROOT, "results", "DEP")
 
-SCRIPT2_DIR <- file.path(BASE_DIR, "results", "02_WGCNA_core_collapsed_genes")
-SCRIPT3_DIR <- file.path(BASE_DIR, "results", "03_WGCNA_module_biology_hubs_enrichment")
-SCRIPT4_DIR <- file.path(BASE_DIR, "results", "04_WGCNA_module_trait_clinical_integration")
+SCRIPT2_DIR <- file.path(BASE_DIR, "02_WGCNA_core_collapsed_genes")
+SCRIPT3_DIR <- file.path(BASE_DIR, "03_WGCNA_module_biology_hubs_enrichment")
+SCRIPT4_DIR <- file.path(BASE_DIR, "04_WGCNA_module_trait_clinical_integration")
 
-OUTDIR <- file.path(BASE_DIR, "results", "06_8_wgcna_figure3_main_FINAL_bugfix")
+OUTDIR <- file.path(BASE_DIR, "06_8_wgcna_figure3_main_FINAL_bugfix")
 OUTDIR_PANELS <- file.path(OUTDIR, "separate_panels")
 OUTDIR_SUPP   <- file.path(OUTDIR, "supplementary")
 OUTDIR_TABLES <- file.path(OUTDIR, "tables")
@@ -233,9 +240,7 @@ PRIORITIZATION_FILE     <- file.path(SCRIPT4_DIR, "tables", "final_module_priori
 MODULE_DEP_SUMMARY_FILE <- file.path(SCRIPT4_DIR, "tables", "module_dep_summary.csv")
 
 # DEP full gene-collapsed results
-DEP_RESULTS_FILE <- file.path(
-  DEP_PROJECT_ROOT,
-  "result",
+DEP_RESULTS_FILE <- file.path(DEP_PROJECT_ROOT,
   "03_dep",
   "gene_collapsed",
   "AD_vs_CN_full_limma_results_gene_collapsed.csv"
