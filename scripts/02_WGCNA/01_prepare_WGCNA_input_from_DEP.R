@@ -140,7 +140,7 @@ stop_if_missing_file <- function(file, label) {
 # =============================================================================
 
 dir.create(WGCNA_PROJECT_ROOT, recursive = TRUE, showWarnings = FALSE)
-dir.create(file.path(WGCNA_PROJECT_ROOT, "results"), recursive = TRUE, showWarnings = FALSE)
+dir.create(WGCNA_PROJECT_ROOT, recursive = TRUE, showWarnings = FALSE)
 dir.create(file.path(WGCNA_PROJECT_ROOT, "scripts"), recursive = TRUE, showWarnings = FALSE)
 
 dir.create(OUTDIR, recursive = TRUE, showWarnings = FALSE)
