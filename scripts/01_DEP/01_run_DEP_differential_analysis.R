@@ -60,8 +60,7 @@ csv_file  <- file.path(data_dir, "ReDLat_CARD-proteomic_updated_all_data_11_2025
 adat_file <- file.path(data_dir, "merged.adat")
 
 # Legacy compatibility
-outdir <- project_root
-outdir <- project_root
+outdir <- results_dir
 
 csv_file  <- file.path(project_root, "data", "ReDLat_CARD-proteomic_updated_all_data_11_2025.csv")
 adat_file <- file.path(project_root, "data", "merged.adat")
@@ -772,10 +771,10 @@ analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Rows after RowChec
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Detected seq columns", length(seq_cols))
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Internal ADAT protein universe", length(protein_universe))
 
-safe_write_csv(soma_info_internal, file.path(outdir, "result", "01_qc", "annotations", "soma_info_internal_from_adat.csv"))
-safe_write_csv(annot_tbl, file.path(outdir, "result", "01_qc", "annotations", "protein_annotation_dictionary.csv"))
-safe_write_csv(tibble::tibble(AptName = protein_universe), file.path(outdir, "result", "01_qc", "sample_tracking", "protein_universe_internal_adat.csv"))
-safe_write_csv(protein_universe_audit, file.path(outdir, "result", "01_qc", "sample_tracking", "protein_universe_audit.csv"))
+safe_write_csv(soma_info_internal, file.path(outdir, "01_qc", "annotations", "soma_info_internal_from_adat.csv"))
+safe_write_csv(annot_tbl, file.path(outdir, "01_qc", "annotations", "protein_annotation_dictionary.csv"))
+safe_write_csv(tibble::tibble(AptName = protein_universe), file.path(outdir, "01_qc", "sample_tracking", "protein_universe_internal_adat.csv"))
+safe_write_csv(protein_universe_audit, file.path(outdir, "01_qc", "sample_tracking", "protein_universe_audit.csv"))
 
 sample_tracking_tbl <- tibble::tibble(
   step = c("Initial merged dataset", "RowCheck PASS or missing", "SampleType == Sample", "Non-missing Age and Sex", "Non-missing Country and Education", "Non-missing SampleGroup", "Restricted to CN/AD for DEP", "Restricted to non-missing APOE4 for APOE sensitivity"),
@@ -790,7 +789,7 @@ sample_tracking_tbl <- tibble::tibble(
     nrow(sample_data %>% dplyr::filter(SampleType == "Sample", !is.na(Age), !is.na(Sex), !is.na(Country), !is.na(Education)) %>% tidyr::drop_na(SampleGroup) %>% dplyr::filter(SampleGroup %in% MAIN_GROUPS, !is.na(APOE4_carrier)))
   )
 )
-safe_write_csv(sample_tracking_tbl, file.path(outdir, "result", "01_qc", "sample_tracking", "sample_tracking_workflow.csv"))
+safe_write_csv(sample_tracking_tbl, file.path(outdir, "01_qc", "sample_tracking", "sample_tracking_workflow.csv"))
 
 summary_tbl <- sample_data %>%
   dplyr::filter(!is.na(Age), !is.na(Sex)) %>%
@@ -802,8 +801,8 @@ summary_tbl <- sample_data %>%
 na_count_tbl <- sample_data %>%
   dplyr::select(-dplyr::any_of(seq_cols)) %>%
   dplyr::summarise(dplyr::across(dplyr::everything(), ~ sum(is.na(.))))
-safe_write_csv(summary_tbl, file.path(outdir, "result", "01_qc", "Table_1_sample_characteristics_by_group.csv"))
-safe_write_csv(na_count_tbl, file.path(outdir, "result", "01_qc", "metadata_missingness_count.csv"))
+safe_write_csv(summary_tbl, file.path(outdir, "01_qc", "Table_1_sample_characteristics_by_group.csv"))
+safe_write_csv(na_count_tbl, file.path(outdir, "01_qc", "metadata_missingness_count.csv"))
 
 ###############################################################################
 # 02_expression_matrices_pca
@@ -825,8 +824,8 @@ normalized_expr_all <- analysis_df %>%
   dplyr::mutate(dplyr::across(dplyr::all_of(protein_vars_present), safe_standardize_vector))
 normalized_expr_CN_AD <- normalized_expr_all %>% dplyr::filter(SampleGroup %in% MAIN_GROUPS)
 normalized_expr <- normalized_expr_CN_AD
-safe_write_csv(normalized_expr_all, file.path(outdir, "result", "02_pca", "normalized_log2_z_expression_all_samples.csv"))
-safe_write_csv(normalized_expr_CN_AD, file.path(outdir, "result", "02_pca", "normalized_log2_z_expression_CN_AD.csv"))
+safe_write_csv(normalized_expr_all, file.path(outdir, "02_pca", "normalized_log2_z_expression_all_samples.csv"))
+safe_write_csv(normalized_expr_CN_AD, file.path(outdir, "02_pca", "normalized_log2_z_expression_CN_AD.csv"))
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Analysis dataset rows before CN/AD restriction", nrow(normalized_expr_all))
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "CN/AD normalized expression rows", nrow(normalized_expr_CN_AD))
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Protein columns in normalized expression matrix", length(protein_vars_present))
@@ -849,8 +848,8 @@ if (RUN_FLAGS$run_pca) {
   pca_df <- as.data.frame(pca$x)[, seq_len(min(10, ncol(pca$x))), drop = FALSE] %>%
     dplyr::mutate(SampleId = normalized_expr_all$SampleId, .before = 1) %>%
     dplyr::bind_cols(normalized_expr_all %>% dplyr::select(-dplyr::any_of(c(protein_vars_present, "SampleId"))))
-  safe_write_csv(pca_var, file.path(outdir, "result", "02_pca", "pca_variance_explained.csv"))
-  safe_write_csv(pca_df, file.path(outdir, "result", "02_pca", "pca_scores_with_metadata.csv"))
+  safe_write_csv(pca_var, file.path(outdir, "02_pca", "pca_variance_explained.csv"))
+  safe_write_csv(pca_df, file.path(outdir, "02_pca", "pca_scores_with_metadata.csv"))
 }
 
 ###############################################################################
@@ -871,7 +870,7 @@ dep_protein_cols <- intersect(protein_universe, names(dep_df))
 if (length(dep_protein_cols) == 0) stop("No protein columns found for DEP.")
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "DEP input samples", nrow(dep_df))
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "DEP input proteins", length(dep_protein_cols))
-safe_write_csv(tibble::tibble(SampleId = dep_df$SampleId), file.path(outdir, "result", "01_qc", "sample_tracking", "main_dep_sample_ids.csv"))
+safe_write_csv(tibble::tibble(SampleId = dep_df$SampleId), file.path(outdir, "01_qc", "sample_tracking", "main_dep_sample_ids.csv"))
 
 main_formula <- "~ SampleGroup + Age + Sex + Country + Education"
 main_fit <- run_limma_dep_model(dep_df, dep_protein_cols, annot_tbl, main_formula, "SampleGroupAD", MAIN_FDR, model_name = "main_DEP")
@@ -889,19 +888,19 @@ DEP_counts <- dplyr::bind_rows(
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Gene-collapsed interpretation universe", nrow(DEP_gene))
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Main DEP genes FDR < 0.05", sum(DEP_gene$adj.P.Val < MAIN_FDR, na.rm = TRUE))
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Main DEP genes FDR < 0.01", sum(DEP_gene$adj.P.Val < STRICT_FDR, na.rm = TRUE))
-export_dep_table(DEP_aptamer, file.path(outdir, "result", "03_dep", "aptamer_level", "AD_vs_CN_full_limma_results_aptamer_level.csv"))
-export_dep_table(DEP_gene, file.path(outdir, "result", "03_dep", "gene_collapsed", "AD_vs_CN_full_limma_results_gene_collapsed.csv"))
-safe_write_csv(DEP_counts, file.path(outdir, "result", "03_dep", "AD_vs_CN_DEP_counts_by_universe.csv"))
+export_dep_table(DEP_aptamer, file.path(outdir, "03_dep", "aptamer_level", "AD_vs_CN_full_limma_results_aptamer_level.csv"))
+export_dep_table(DEP_gene, file.path(outdir, "03_dep", "gene_collapsed", "AD_vs_CN_full_limma_results_gene_collapsed.csv"))
+safe_write_csv(DEP_counts, file.path(outdir, "03_dep", "AD_vs_CN_DEP_counts_by_universe.csv"))
 
 # Main DEP filtered tables for direct FDR 0.05 / FDR 0.01 reporting.
 export_fdr_specific_dep_tables(
   DEP_gene,
-  file.path(outdir, "result", "03_dep", "gene_collapsed", "FDR_specific"),
+  file.path(outdir, "03_dep", "gene_collapsed", "FDR_specific"),
   "AD_vs_CN_DEP_gene_collapsed"
 )
 export_fdr_specific_dep_tables(
   DEP_aptamer,
-  file.path(outdir, "result", "03_dep", "aptamer_level", "FDR_specific"),
+  file.path(outdir, "03_dep", "aptamer_level", "FDR_specific"),
   "AD_vs_CN_DEP_aptamer_level"
 )
 
@@ -923,13 +922,13 @@ if (RUN_FLAGS$run_apoe_sensitivity) {
     DEP_APOE_gene <- collapse_dep_to_gene(DEP_APOE)
     apoe_compare_tbl <- build_gene_compare_table(DEP_gene, DEP_APOE_gene, "APOE-adjusted") %>%
       dplyr::rename(logFC_apoe = logFC_secondary, adj.P.Val_apoe = adj.P.Val_secondary, P.Value_apoe = P.Value_secondary, type_apoe = type_secondary)
-    export_dep_table(DEP_APOE, file.path(outdir, "result", "04_sensitivity", "apoe", "AD_vs_CN_APOE_adjusted_full_limma_results_aptamer_level.csv"))
-    export_dep_table(DEP_APOE_gene, file.path(outdir, "result", "04_sensitivity", "apoe", "AD_vs_CN_APOE_adjusted_full_limma_results_gene_collapsed.csv"))
-    safe_write_csv(apoe_compare_tbl, file.path(outdir, "result", "04_sensitivity", "apoe", "primary_vs_APOE_adjusted_gene_comparison.csv"))
-    safe_write_csv(summarize_dep_counts(DEP_APOE_gene, universe_label = "gene_collapsed_APOE_adjusted"), file.path(outdir, "result", "04_sensitivity", "apoe", "APOE_adjusted_DEP_counts_gene_collapsed.csv"))
+    export_dep_table(DEP_APOE, file.path(outdir, "04_sensitivity", "apoe", "AD_vs_CN_APOE_adjusted_full_limma_results_aptamer_level.csv"))
+    export_dep_table(DEP_APOE_gene, file.path(outdir, "04_sensitivity", "apoe", "AD_vs_CN_APOE_adjusted_full_limma_results_gene_collapsed.csv"))
+    safe_write_csv(apoe_compare_tbl, file.path(outdir, "04_sensitivity", "apoe", "primary_vs_APOE_adjusted_gene_comparison.csv"))
+    safe_write_csv(summarize_dep_counts(DEP_APOE_gene, universe_label = "gene_collapsed_APOE_adjusted"), file.path(outdir, "04_sensitivity", "apoe", "APOE_adjusted_DEP_counts_gene_collapsed.csv"))
     export_fdr_specific_dep_tables(
       DEP_APOE_gene,
-      file.path(outdir, "result", "04_sensitivity", "apoe", "FDR_specific"),
+      file.path(outdir, "04_sensitivity", "apoe", "FDR_specific"),
       "AD_vs_CN_APOE_adjusted_DEP_gene_collapsed"
     )
     analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "APOE sensitivity samples", nrow(apoe_fit$metadata))
@@ -1034,13 +1033,13 @@ if (RUN_FLAGS$run_cdrsb_sensitivity && !is.na(cdrsb_col)) {
         note = "CDR-SB model is AD-only; beta_CDRSB_AD_only is not an adjusted AD-vs-CN logFC."
       )
 
-    export_dep_table(DEP_CDRSB, file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_only", "AD_only_CDRSB_severity_full_limma_results_aptamer_level.csv"))
-    export_dep_table(DEP_CDRSB_gene, file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_only", "AD_only_CDRSB_severity_full_limma_results_gene_collapsed.csv"))
-    safe_write_csv(cdrsb_compare_tbl, file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_only", "primary_AD_vs_CN_vs_AD_only_CDRSB_severity_alignment.csv"))
-    safe_write_csv(summarize_dep_counts(DEP_CDRSB_gene, universe_label = "gene_collapsed_AD_only_CDRSB_severity"), file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_only", "AD_only_CDRSB_severity_counts_gene_collapsed.csv"))
+    export_dep_table(DEP_CDRSB, file.path(outdir, "04_sensitivity", "cdrsb", "AD_only", "AD_only_CDRSB_severity_full_limma_results_aptamer_level.csv"))
+    export_dep_table(DEP_CDRSB_gene, file.path(outdir, "04_sensitivity", "cdrsb", "AD_only", "AD_only_CDRSB_severity_full_limma_results_gene_collapsed.csv"))
+    safe_write_csv(cdrsb_compare_tbl, file.path(outdir, "04_sensitivity", "cdrsb", "AD_only", "primary_AD_vs_CN_vs_AD_only_CDRSB_severity_alignment.csv"))
+    safe_write_csv(summarize_dep_counts(DEP_CDRSB_gene, universe_label = "gene_collapsed_AD_only_CDRSB_severity"), file.path(outdir, "04_sensitivity", "cdrsb", "AD_only", "AD_only_CDRSB_severity_counts_gene_collapsed.csv"))
     export_fdr_specific_dep_tables(
       DEP_CDRSB_gene,
-      file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_only", "FDR_specific"),
+      file.path(outdir, "04_sensitivity", "cdrsb", "AD_only", "FDR_specific"),
       "AD_only_CDRSB_severity_DEP_gene_collapsed"
     )
 
@@ -1141,23 +1140,23 @@ if (isTRUE(RUN_FLAGS$run_cdrsb_adjusted_diagnostic_sensitivity) && !is.na(cdrsb_
 
     export_dep_table(
       DEP_CDRSB_ADJ,
-      file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "AD_vs_CN_CDRSB_adjusted_full_limma_results_aptamer_level.csv")
+      file.path(outdir, "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "AD_vs_CN_CDRSB_adjusted_full_limma_results_aptamer_level.csv")
     )
     export_dep_table(
       DEP_CDRSB_ADJ_gene,
-      file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "AD_vs_CN_CDRSB_adjusted_full_limma_results_gene_collapsed.csv")
+      file.path(outdir, "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "AD_vs_CN_CDRSB_adjusted_full_limma_results_gene_collapsed.csv")
     )
     safe_write_csv(
       cdrsb_adjusted_compare_tbl,
-      file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "primary_vs_CDRSB_adjusted_AD_vs_CN_gene_comparison.csv")
+      file.path(outdir, "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "primary_vs_CDRSB_adjusted_AD_vs_CN_gene_comparison.csv")
     )
     safe_write_csv(
       summarize_dep_counts(DEP_CDRSB_ADJ_gene, universe_label = "gene_collapsed_CDRSB_adjusted_AD_vs_CN"),
-      file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "CDRSB_adjusted_AD_vs_CN_DEP_counts_gene_collapsed.csv")
+      file.path(outdir, "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "CDRSB_adjusted_AD_vs_CN_DEP_counts_gene_collapsed.csv")
     )
     export_fdr_specific_dep_tables(
       DEP_CDRSB_ADJ_gene,
-      file.path(outdir, "result", "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "FDR_specific"),
+      file.path(outdir, "04_sensitivity", "cdrsb", "AD_vs_CN_adjusted", "FDR_specific"),
       "AD_vs_CN_CDRSB_adjusted_DEP_gene_collapsed"
     )
 
@@ -1200,16 +1199,16 @@ if (RUN_FLAGS$run_vascular_metabolic_sensitivity) {
       DEP_VASCULAR_gene <- collapse_dep_to_gene(DEP_VASCULAR)
       vascular_compare_tbl <- build_gene_compare_table(DEP_gene, DEP_VASCULAR_gene, "vascular-metabolic-adjusted") %>%
         dplyr::rename(logFC_vascular = logFC_secondary, adj.P.Val_vascular = adj.P.Val_secondary, P.Value_vascular = P.Value_secondary, type_vascular = type_secondary)
-      export_dep_table(DEP_VASCULAR, file.path(outdir, "result", "04_sensitivity", "vascular_metabolic", "AD_vs_CN_vascular_metabolic_adjusted_full_limma_results_aptamer_level.csv"))
-      export_dep_table(DEP_VASCULAR_gene, file.path(outdir, "result", "04_sensitivity", "vascular_metabolic", "AD_vs_CN_vascular_metabolic_adjusted_full_limma_results_gene_collapsed.csv"))
-      safe_write_csv(vascular_compare_tbl, file.path(outdir, "result", "04_sensitivity", "vascular_metabolic", "main_vs_vascular_metabolic_adjusted_gene_comparison.csv"))
-      safe_write_csv(summarize_dep_counts(DEP_VASCULAR_gene, universe_label = "gene_collapsed_vascular_metabolic_adjusted"), file.path(outdir, "result", "04_sensitivity", "vascular_metabolic", "vascular_metabolic_adjusted_DEP_counts_gene_collapsed.csv"))
+      export_dep_table(DEP_VASCULAR, file.path(outdir, "04_sensitivity", "vascular_metabolic", "AD_vs_CN_vascular_metabolic_adjusted_full_limma_results_aptamer_level.csv"))
+      export_dep_table(DEP_VASCULAR_gene, file.path(outdir, "04_sensitivity", "vascular_metabolic", "AD_vs_CN_vascular_metabolic_adjusted_full_limma_results_gene_collapsed.csv"))
+      safe_write_csv(vascular_compare_tbl, file.path(outdir, "04_sensitivity", "vascular_metabolic", "main_vs_vascular_metabolic_adjusted_gene_comparison.csv"))
+      safe_write_csv(summarize_dep_counts(DEP_VASCULAR_gene, universe_label = "gene_collapsed_vascular_metabolic_adjusted"), file.path(outdir, "04_sensitivity", "vascular_metabolic", "vascular_metabolic_adjusted_DEP_counts_gene_collapsed.csv"))
       export_fdr_specific_dep_tables(
         DEP_VASCULAR_gene,
-        file.path(outdir, "result", "04_sensitivity", "vascular_metabolic", "FDR_specific"),
+        file.path(outdir, "04_sensitivity", "vascular_metabolic", "FDR_specific"),
         "AD_vs_CN_vascular_metabolic_adjusted_DEP_gene_collapsed"
       )
-      safe_write_csv(tibble::tibble(covariate = vascular_covariates, n_complete_in_model = nrow(vascular_fit$metadata)), file.path(outdir, "result", "04_sensitivity", "vascular_metabolic", "vascular_metabolic_covariates_used.csv"))
+      safe_write_csv(tibble::tibble(covariate = vascular_covariates, n_complete_in_model = nrow(vascular_fit$metadata)), file.path(outdir, "04_sensitivity", "vascular_metabolic", "vascular_metabolic_covariates_used.csv"))
       analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Vascular/metabolic sensitivity samples", nrow(vascular_fit$metadata), note = paste("Covariates:", paste(vascular_covariates, collapse = ", ")))
     }
   } else {
@@ -1273,14 +1272,14 @@ if (RUN_FLAGS$run_atn_adjusted_sensitivity) {
           note = "AT(N)-adjusted model tests whether the AD-vs-CN diagnostic coefficient is preserved after adjustment for plasma p-tau217, NfL and Aβ42/40 when available."
         )
 
-      export_dep_table(DEP_ATN, file.path(outdir, "result", "04_sensitivity", "atn_adjusted", "AD_vs_CN_ATN_adjusted_full_limma_results_aptamer_level.csv"))
-      export_dep_table(DEP_ATN_gene, file.path(outdir, "result", "04_sensitivity", "atn_adjusted", "AD_vs_CN_ATN_adjusted_full_limma_results_gene_collapsed.csv"))
-      safe_write_csv(atn_compare_tbl, file.path(outdir, "result", "04_sensitivity", "atn_adjusted", "primary_vs_ATN_adjusted_gene_comparison.csv"))
-      safe_write_csv(summarize_dep_counts(DEP_ATN_gene, universe_label = "gene_collapsed_ATN_adjusted"), file.path(outdir, "result", "04_sensitivity", "atn_adjusted", "ATN_adjusted_DEP_counts_gene_collapsed.csv"))
-      safe_write_csv(tibble::tibble(covariate = preferred_atn_covariates, n_complete_in_model = nrow(atn_fit$metadata)), file.path(outdir, "result", "04_sensitivity", "atn_adjusted", "ATN_covariates_used.csv"))
+      export_dep_table(DEP_ATN, file.path(outdir, "04_sensitivity", "atn_adjusted", "AD_vs_CN_ATN_adjusted_full_limma_results_aptamer_level.csv"))
+      export_dep_table(DEP_ATN_gene, file.path(outdir, "04_sensitivity", "atn_adjusted", "AD_vs_CN_ATN_adjusted_full_limma_results_gene_collapsed.csv"))
+      safe_write_csv(atn_compare_tbl, file.path(outdir, "04_sensitivity", "atn_adjusted", "primary_vs_ATN_adjusted_gene_comparison.csv"))
+      safe_write_csv(summarize_dep_counts(DEP_ATN_gene, universe_label = "gene_collapsed_ATN_adjusted"), file.path(outdir, "04_sensitivity", "atn_adjusted", "ATN_adjusted_DEP_counts_gene_collapsed.csv"))
+      safe_write_csv(tibble::tibble(covariate = preferred_atn_covariates, n_complete_in_model = nrow(atn_fit$metadata)), file.path(outdir, "04_sensitivity", "atn_adjusted", "ATN_covariates_used.csv"))
       export_fdr_specific_dep_tables(
         DEP_ATN_gene,
-        file.path(outdir, "result", "04_sensitivity", "atn_adjusted", "FDR_specific"),
+        file.path(outdir, "04_sensitivity", "atn_adjusted", "FDR_specific"),
         "AD_vs_CN_ATN_adjusted_DEP_gene_collapsed"
       )
       analysis_checkpoints <- add_checkpoint(
@@ -1314,7 +1313,7 @@ if (RUN_FLAGS$run_atn_adjusted_sensitivity) {
 message("05_secondary_clinical_severity")
 severity_results <- NULL
 if (RUN_FLAGS$run_secondary_clinical_severity) {
-  severity_results <- run_clinical_severity_models(dep_df, dep_protein_cols, annot_tbl, file.path(outdir, "result", "04_sensitivity", "clinical_severity"))
+  severity_results <- run_clinical_severity_models(dep_df, dep_protein_cols, annot_tbl, file.path(outdir, "04_sensitivity", "clinical_severity"))
   if (!is.null(severity_results) && nrow(severity_results) > 0) {
     analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Secondary clinical severity associations rows", nrow(severity_results))
   } else {
@@ -1329,10 +1328,10 @@ if (RUN_FLAGS$run_secondary_clinical_severity) {
 message("06_enrichment_corrected")
 enrichment_inventory <- tibble::tibble(analysis = character(), status = character(), file_prefix = character(), note = character())
 if (RUN_FLAGS$run_corrected_enrichment) {
-  gsea_go_kegg_main <- run_gsea_go_kegg(DEP_gene, "main_dep", file.path(outdir, "result", "05_enrichment_corrected", "gsea"))
-  gsea_reactome_main <- run_gsea_reactome(DEP_gene, "main_dep", file.path(outdir, "result", "05_enrichment_corrected", "gsea"))
-  gsea_hallmark_main <- run_gsea_hallmark(DEP_gene, "main_dep", file.path(outdir, "result", "05_enrichment_corrected", "gsea"))
-  ora_directional_main <- run_corrected_ora_by_direction(DEP_gene, "main_dep", file.path(outdir, "result", "05_enrichment_corrected", "ora"), fdr = MAIN_FDR)
+  gsea_go_kegg_main <- run_gsea_go_kegg(DEP_gene, "main_dep", file.path(outdir, "05_enrichment_corrected", "gsea"))
+  gsea_reactome_main <- run_gsea_reactome(DEP_gene, "main_dep", file.path(outdir, "05_enrichment_corrected", "gsea"))
+  gsea_hallmark_main <- run_gsea_hallmark(DEP_gene, "main_dep", file.path(outdir, "05_enrichment_corrected", "gsea"))
+  ora_directional_main <- run_corrected_ora_by_direction(DEP_gene, "main_dep", file.path(outdir, "05_enrichment_corrected", "ora"), fdr = MAIN_FDR)
   enrichment_inventory <- dplyr::bind_rows(
     enrichment_inventory,
     tibble::tibble(analysis = "GSEA GO/KEGG", status = "completed", file_prefix = "main_dep", note = "BH-corrected"),
@@ -1341,23 +1340,23 @@ if (RUN_FLAGS$run_corrected_enrichment) {
     tibble::tibble(analysis = "Directional ORA GO/KEGG/Reactome", status = "completed", file_prefix = "main_dep", note = "BH-corrected; higher and lower in AD separated")
   )
   if (!is.null(DEP_APOE_gene) && nrow(DEP_APOE_gene) > 0) {
-    gsea_reactome_apoe <- run_gsea_reactome(DEP_APOE_gene, "apoe_adjusted_dep", file.path(outdir, "result", "05_enrichment_corrected", "gsea"))
+    gsea_reactome_apoe <- run_gsea_reactome(DEP_APOE_gene, "apoe_adjusted_dep", file.path(outdir, "05_enrichment_corrected", "gsea"))
     enrichment_inventory <- dplyr::bind_rows(enrichment_inventory, tibble::tibble(analysis = "APOE-adjusted GSEA Reactome", status = "completed", file_prefix = "apoe_adjusted_dep", note = "BH-corrected"))
   }
   if (!is.null(DEP_ATN_gene) && nrow(DEP_ATN_gene) > 0) {
-    gsea_reactome_atn <- run_gsea_reactome(DEP_ATN_gene, "atn_adjusted_dep", file.path(outdir, "result", "05_enrichment_corrected", "gsea"))
+    gsea_reactome_atn <- run_gsea_reactome(DEP_ATN_gene, "atn_adjusted_dep", file.path(outdir, "05_enrichment_corrected", "gsea"))
     enrichment_inventory <- dplyr::bind_rows(enrichment_inventory, tibble::tibble(analysis = "AT(N)-adjusted GSEA Reactome", status = "completed", file_prefix = "atn_adjusted_dep", note = "BH-corrected; diagnostic coefficient after plasma AT(N) adjustment"))
   }
   if (!is.null(DEP_CDRSB_gene) && nrow(DEP_CDRSB_gene) > 0) {
-    gsea_reactome_cdrsb <- run_gsea_reactome(DEP_CDRSB_gene, "ad_only_cdrsb_severity", file.path(outdir, "result", "05_enrichment_corrected", "gsea"))
+    gsea_reactome_cdrsb <- run_gsea_reactome(DEP_CDRSB_gene, "ad_only_cdrsb_severity", file.path(outdir, "05_enrichment_corrected", "gsea"))
     enrichment_inventory <- dplyr::bind_rows(enrichment_inventory, tibble::tibble(analysis = "AD-only CDR-SB severity GSEA Reactome", status = "completed", file_prefix = "ad_only_cdrsb_severity", note = "BH-corrected; interpreted as within-AD severity association"))
   }
   if (!is.null(DEP_CDRSB_ADJ_gene) && nrow(DEP_CDRSB_ADJ_gene) > 0) {
-    gsea_reactome_cdrsb_adjusted <- run_gsea_reactome(DEP_CDRSB_ADJ_gene, "cdrsb_adjusted_ad_vs_cn", file.path(outdir, "result", "05_enrichment_corrected", "gsea"))
+    gsea_reactome_cdrsb_adjusted <- run_gsea_reactome(DEP_CDRSB_ADJ_gene, "cdrsb_adjusted_ad_vs_cn", file.path(outdir, "05_enrichment_corrected", "gsea"))
     enrichment_inventory <- dplyr::bind_rows(enrichment_inventory, tibble::tibble(analysis = "CDR-SB-adjusted AD-vs-CN GSEA Reactome", status = "completed", file_prefix = "cdrsb_adjusted_ad_vs_cn", note = "BH-corrected; secondary diagnostic attenuation model, not within-AD severity"))
   }
 }
-safe_write_csv(enrichment_inventory, file.path(outdir, "result", "05_enrichment_corrected", "enrichment_inventory.csv"))
+safe_write_csv(enrichment_inventory, file.path(outdir, "05_enrichment_corrected", "enrichment_inventory.csv"))
 
 ###############################################################################
 # 07_country_site_robustness
@@ -1371,7 +1370,7 @@ country_counts <- dep_df %>%
   ensure_count_cols(c("CN", "AD")) %>%
   dplyr::mutate(total = CN + AD) %>%
   dplyr::arrange(dplyr::desc(total))
-safe_write_csv(country_counts, file.path(outdir, "result", "06_robustness", "country_loco", "tables", "country_group_counts.csv"))
+safe_write_csv(country_counts, file.path(outdir, "06_robustness", "country_loco", "tables", "country_group_counts.csv"))
 countries_to_test <- country_counts %>% dplyr::filter(CN >= MIN_N_PER_GROUP_COUNTRY, AD >= MIN_N_PER_GROUP_COUNTRY) %>% dplyr::pull(Country)
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Countries eligible for country robustness", length(countries_to_test), note = paste(countries_to_test, collapse = ", "))
 
@@ -1385,7 +1384,7 @@ if (RUN_FLAGS$run_country_loco && length(countries_to_test) >= 2) {
     model_design_diagnostics <- dplyr::bind_rows(model_design_diagnostics, loco_fit_obj$design_diagnostic)
     model_formula_manifest <- add_model_formula(model_formula_manifest, paste0("LOCO_excluding_", ctry), formula_loco, "SampleGroupAD", nrow(loco_fit_obj$metadata), length(dep_protein_cols), "Leave-one-country-out internal stability model.")
     dep_loco <- loco_fit_obj$dep %>% dplyr::mutate(excluded_country = ctry)
-    export_dep_table(dep_loco, file.path(outdir, "result", "06_robustness", "country_loco", "tables", paste0("LOCO_excluding_", safe_file_tag(ctry), "_dep_results.csv")))
+    export_dep_table(dep_loco, file.path(outdir, "06_robustness", "country_loco", "tables", paste0("LOCO_excluding_", safe_file_tag(ctry), "_dep_results.csv")))
     cmp <- DEP %>%
       dplyr::select(AptName, Protein_Name, logFC, adj.P.Val, type) %>%
       dplyr::rename(Protein_Name_main = Protein_Name, main_logFC = logFC, main_adj.P.Val = adj.P.Val, main_type = type) %>%
@@ -1398,7 +1397,7 @@ if (RUN_FLAGS$run_country_loco && length(countries_to_test) >= 2) {
         main_sig_preserved = main_sig_fdr005 & loco_sig_fdr005 & same_direction,
         delta_logFC = loco_logFC - main_logFC
       )
-    safe_write_csv(cmp, file.path(outdir, "result", "06_robustness", "country_loco", "tables", paste0("LOCO_excluding_", safe_file_tag(ctry), "_comparison_to_main.csv")))
+    safe_write_csv(cmp, file.path(outdir, "06_robustness", "country_loco", "tables", paste0("LOCO_excluding_", safe_file_tag(ctry), "_comparison_to_main.csv")))
     loco_tables[[ctry]] <- cmp
     loco_summary_metrics <- dplyr::bind_rows(loco_summary_metrics, tibble::tibble(
       excluded_country = ctry,
@@ -1410,7 +1409,7 @@ if (RUN_FLAGS$run_country_loco && length(countries_to_test) >= 2) {
       prop_main_sig_preserved = mean(cmp$main_sig_preserved[cmp$main_sig_fdr005], na.rm = TRUE)
     ))
   }
-  safe_write_csv(loco_summary_metrics, file.path(outdir, "result", "06_robustness", "country_loco", "tables", "LOCO_summary_metrics.csv"))
+  safe_write_csv(loco_summary_metrics, file.path(outdir, "06_robustness", "country_loco", "tables", "LOCO_summary_metrics.csv"))
   main_vs_loco_mean <- dplyr::bind_rows(loco_tables) %>%
     dplyr::group_by(AptName) %>%
     dplyr::summarise(
@@ -1425,7 +1424,7 @@ if (RUN_FLAGS$run_country_loco && length(countries_to_test) >= 2) {
       .groups = "drop"
     ) %>%
     dplyr::mutate(loco_delta = mean_loco_logFC - main_logFC)
-  safe_write_csv(main_vs_loco_mean, file.path(outdir, "result", "06_robustness", "country_loco", "tables", "main_vs_meanLOCO_table.csv"))
+  safe_write_csv(main_vs_loco_mean, file.path(outdir, "06_robustness", "country_loco", "tables", "main_vs_meanLOCO_table.csv"))
 }
 
 country_specific_tbl <- NULL; meta_tbl <- NULL
@@ -1444,7 +1443,7 @@ if (RUN_FLAGS$run_country_meta && length(countries_to_test) >= 2) {
       dplyr::select(Country, AptName, Protein_Name, EntrezGeneSymbol, logFC, se, P.Value, adj.P.Val, type)
   }
   country_specific_tbl <- dplyr::bind_rows(country_specific_list)
-  safe_write_csv(country_specific_tbl, file.path(outdir, "result", "06_robustness", "country_meta", "tables", "country_specific_DEP_results.csv"))
+  safe_write_csv(country_specific_tbl, file.path(outdir, "06_robustness", "country_meta", "tables", "country_specific_DEP_results.csv"))
   if (nrow(country_specific_tbl) > 0) {
     meta_tbl <- country_specific_tbl %>%
       dplyr::filter(!is.na(se), is.finite(se), se > 0) %>%
@@ -1462,7 +1461,7 @@ if (RUN_FLAGS$run_country_meta && length(countries_to_test) >= 2) {
         meta_type = dplyr::case_when(meta_logFC > 0 & meta_adj.P.Val < MAIN_FDR ~ "Up", meta_logFC < 0 & meta_adj.P.Val < MAIN_FDR ~ "Down", TRUE ~ "NS")
       ) %>%
       dplyr::arrange(meta_adj.P.Val)
-    safe_write_csv(meta_tbl, file.path(outdir, "result", "06_robustness", "country_meta", "tables", "country_meta_analysis_results.csv"))
+    safe_write_csv(meta_tbl, file.path(outdir, "06_robustness", "country_meta", "tables", "country_meta_analysis_results.csv"))
   }
 }
 
@@ -1486,8 +1485,8 @@ if (RUN_FLAGS$run_country_interaction && length(countries_to_test) >= 2) {
       dplyr::group_by(AptName) %>%
       dplyr::summarise(Protein_Name = dplyr::first(Protein_Name), EntrezGeneSymbol = dplyr::first(EntrezGeneSymbol), min_interaction_p = min(P.Value, na.rm = TRUE), min_interaction_adjP = min(adj.P.Val, na.rm = TRUE), n_interaction_terms = dplyr::n(), .groups = "drop") %>%
       dplyr::arrange(min_interaction_adjP)
-    safe_write_csv(interaction_results, file.path(outdir, "result", "06_robustness", "country_interaction", "tables", "country_interaction_all_terms.csv"))
-    safe_write_csv(country_interaction_tbl, file.path(outdir, "result", "06_robustness", "country_interaction", "tables", "country_interaction_summary_by_protein.csv"))
+    safe_write_csv(interaction_results, file.path(outdir, "06_robustness", "country_interaction", "tables", "country_interaction_all_terms.csv"))
+    safe_write_csv(country_interaction_tbl, file.path(outdir, "06_robustness", "country_interaction", "tables", "country_interaction_summary_by_protein.csv"))
   }
 }
 
@@ -1500,7 +1499,7 @@ if (RUN_FLAGS$run_site_robustness && !is.na(site_var)) {
     tidyr::pivot_wider(names_from = SampleGroup, values_from = n, values_fill = 0) %>%
     ensure_count_cols(c("CN", "AD")) %>%
     dplyr::mutate(total = CN + AD)
-  safe_write_csv(site_counts, file.path(outdir, "result", "06_robustness", "site_robustness", "site_group_counts.csv"))
+  safe_write_csv(site_counts, file.path(outdir, "06_robustness", "site_robustness", "site_group_counts.csv"))
   sites_to_test <- site_counts %>% dplyr::filter(CN >= MIN_N_PER_SITE_GROUP, AD >= MIN_N_PER_SITE_GROUP) %>% dplyr::pull(site)
   if (length(sites_to_test) >= 2) {
     for (site_i in sites_to_test) {
@@ -1511,7 +1510,7 @@ if (RUN_FLAGS$run_site_robustness && !is.na(site_var)) {
       model_design_diagnostics <- dplyr::bind_rows(model_design_diagnostics, loso_fit_obj$design_diagnostic)
       model_formula_manifest <- add_model_formula(model_formula_manifest, paste0("LOSO_excluding_", site_i), loso_formula, "SampleGroupAD", nrow(loso_fit_obj$metadata), length(dep_protein_cols), "Leave-one-site-out internal stability model.")
       dep_loso <- loso_fit_obj$dep %>% dplyr::mutate(excluded_site = site_i)
-      export_dep_table(dep_loso, file.path(outdir, "result", "06_robustness", "site_robustness", "loso", "tables", paste0("LOSO_excluding_", safe_file_tag(site_i), "_dep_results.csv")))
+      export_dep_table(dep_loso, file.path(outdir, "06_robustness", "site_robustness", "loso", "tables", paste0("LOSO_excluding_", safe_file_tag(site_i), "_dep_results.csv")))
       cmp <- DEP %>%
         dplyr::select(AptName, main_logFC = logFC, main_adj.P.Val = adj.P.Val) %>%
         dplyr::inner_join(dep_loso %>% dplyr::select(AptName, loso_logFC = logFC, loso_adj.P.Val = adj.P.Val), by = "AptName") %>%
@@ -1525,7 +1524,7 @@ if (RUN_FLAGS$run_site_robustness && !is.na(site_var)) {
         prop_main_sig_preserved = mean(cmp$main_sig_preserved[cmp$main_sig_fdr005], na.rm = TRUE)
       ))
     }
-    safe_write_csv(loso_summary_metrics, file.path(outdir, "result", "06_robustness", "site_robustness", "loso", "tables", "LOSO_summary_metrics.csv"))
+    safe_write_csv(loso_summary_metrics, file.path(outdir, "06_robustness", "site_robustness", "loso", "tables", "LOSO_summary_metrics.csv"))
   }
 } else if (RUN_FLAGS$run_site_robustness) {
   analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Site robustness skipped", NA_integer_, note = "No site/center/cohort variable detected.")
@@ -1585,7 +1584,7 @@ if (RUN_FLAGS$run_balanced_country_resampling && length(countries_to_test) >= 2)
     }
     balanced_summary_tbl <- dplyr::bind_rows(balanced_summary_list)
     balanced_all_proteins <- dplyr::bind_rows(balanced_protein_list)
-    safe_write_csv(balanced_summary_tbl, file.path(outdir, "result", "06_robustness", "balanced_country_resampling", "tables", "balanced_resampling_summary_metrics.csv"))
+    safe_write_csv(balanced_summary_tbl, file.path(outdir, "06_robustness", "balanced_country_resampling", "tables", "balanced_resampling_summary_metrics.csv"))
     if (nrow(balanced_all_proteins) > 0) {
       balanced_protein_tbl <- balanced_all_proteins %>%
         dplyr::group_by(AptName) %>%
@@ -1599,7 +1598,7 @@ if (RUN_FLAGS$run_balanced_country_resampling && length(countries_to_test) >= 2)
           .groups = "drop"
         ) %>%
         dplyr::left_join(DEP %>% dplyr::select(AptName, Protein_Name, EntrezGeneSymbol, main_logFC = logFC, main_adj.P.Val = adj.P.Val), by = "AptName")
-      safe_write_csv(balanced_protein_tbl, file.path(outdir, "result", "06_robustness", "balanced_country_resampling", "tables", "balanced_resampling_protein_stability.csv"))
+      safe_write_csv(balanced_protein_tbl, file.path(outdir, "06_robustness", "balanced_country_resampling", "tables", "balanced_resampling_protein_stability.csv"))
     }
   }
 }
@@ -1627,8 +1626,8 @@ if (RUN_FLAGS$run_formal_robustness_classification) {
     ) %>%
     dplyr::arrange(dplyr::desc(robustness_score), main_adj.P.Val)
   robustness_counts <- robustness_classification_tbl %>% dplyr::count(robustness_class, name = "n") %>% dplyr::arrange(dplyr::desc(n))
-  safe_write_csv(robustness_classification_tbl, file.path(outdir, "result", "06_robustness", "formal_classification", "protein_robustness_classification.csv"))
-  safe_write_csv(robustness_counts, file.path(outdir, "result", "06_robustness", "formal_classification", "protein_robustness_classification_counts.csv"))
+  safe_write_csv(robustness_classification_tbl, file.path(outdir, "06_robustness", "formal_classification", "protein_robustness_classification.csv"))
+  safe_write_csv(robustness_counts, file.path(outdir, "06_robustness", "formal_classification", "protein_robustness_classification_counts.csv"))
 }
 
 ###############################################################################
@@ -1673,11 +1672,11 @@ analysis_manifest <- tibble::tibble(
   )
 )
 
-safe_write_csv(analysis_checkpoints, file.path(outdir, "result", "07_manifest", "analysis_checkpoints.csv"))
-safe_write_csv(analysis_manifest, file.path(outdir, "result", "07_manifest", "analysis_manifest.csv"))
-safe_write_csv(model_formula_manifest, file.path(outdir, "result", "07_manifest", "model_formula_manifest.csv"))
-safe_write_csv(model_design_diagnostics, file.path(outdir, "result", "07_manifest", "model_diagnostics", "model_design_diagnostics.csv"))
-writeLines(capture.output(utils::sessionInfo()), con = file.path(outdir, "result", "07_manifest", "sessionInfo.txt"))
+safe_write_csv(analysis_checkpoints, file.path(outdir, "07_manifest", "analysis_checkpoints.csv"))
+safe_write_csv(analysis_manifest, file.path(outdir, "07_manifest", "analysis_manifest.csv"))
+safe_write_csv(model_formula_manifest, file.path(outdir, "07_manifest", "model_formula_manifest.csv"))
+safe_write_csv(model_design_diagnostics, file.path(outdir, "07_manifest", "model_diagnostics", "model_design_diagnostics.csv"))
+writeLines(capture.output(utils::sessionInfo()), con = file.path(outdir, "07_manifest", "sessionInfo.txt"))
 
 workspace_objects <- c(
   "project_root", "outdir", "csv_file", "adat_file", "MAIN_GROUPS", "MAIN_FDR", "STRICT_FDR", "RUN_FLAGS",
@@ -1702,15 +1701,15 @@ workspace_objects <- c(
 
 existing_workspace_objects <- workspace_objects[vapply(workspace_objects, exists, logical(1), envir = .GlobalEnv)]
 missing_workspace_objects <- setdiff(workspace_objects, existing_workspace_objects)
-safe_write_csv(tibble::tibble(saved_object = existing_workspace_objects), file.path(outdir, "result", "07_manifest", "workspace_saved_objects.csv"))
-if (length(missing_workspace_objects) > 0) safe_write_csv(tibble::tibble(missing_object = missing_workspace_objects), file.path(outdir, "result", "07_manifest", "workspace_missing_objects.csv"))
+safe_write_csv(tibble::tibble(saved_object = existing_workspace_objects), file.path(outdir, "07_manifest", "workspace_saved_objects.csv"))
+if (length(missing_workspace_objects) > 0) safe_write_csv(tibble::tibble(missing_object = missing_workspace_objects), file.path(outdir, "07_manifest", "workspace_missing_objects.csv"))
 
 # Canonical workspace used by downstream scripts.
-save(list = existing_workspace_objects, file = file.path(outdir, "result", "workspace", "analysis_workspace.RData"), envir = .GlobalEnv)
+save(list = existing_workspace_objects, file = file.path(outdir, "workspace", "analysis_workspace.RData"), envir = .GlobalEnv)
 
 message("Primary data processing and differential analysis complete.")
-message("Canonical workspace saved to: ", file.path(outdir, "result", "workspace", "analysis_workspace.RData"))
-message("Manifest saved to: ", file.path(outdir, "result", "07_manifest", "analysis_manifest.csv"))
+message("Canonical workspace saved to: ", file.path(outdir, "workspace", "analysis_workspace.RData"))
+message("Manifest saved to: ", file.path(outdir, "07_manifest", "analysis_manifest.csv"))
 ###############################################################################
 # END OF 01_data_processing_and_differential_analysis.R
 ###############################################################################
