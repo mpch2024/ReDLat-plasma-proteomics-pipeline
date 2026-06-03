@@ -1,5 +1,5 @@
 ###############################################################################
-# REDLAT PLASMA PROTEOMICS
+# ReDLat plasma proteomics differential analysis
 # SCRIPT 02 — MAIN MANUSCRIPT FIGURE GENERATION
 #
 # Purpose:
@@ -75,7 +75,13 @@ options(stringsAsFactors = FALSE)
 # -----------------------------------------------------------------------------
 # USER PATH: must match project_root from Script 01.
 # -----------------------------------------------------------------------------
-project_root <- "C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2"
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+project_root <- here::here()
 outdir <- project_root
 setwd(outdir)
 

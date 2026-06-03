@@ -1,5 +1,5 @@
 ###############################################################################
-# ReDLat plasma proteomics
+# ReDLat plasma proteomics differential analysis
 # 05_additional_tables_sensitivity_MANUSCRIPT_READY.R
 #
 # Purpose

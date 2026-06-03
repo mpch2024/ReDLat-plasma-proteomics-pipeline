@@ -1,5 +1,5 @@
 ###############################################################################
-# ReDLat plasma proteomics
+# ReDLat plasma proteomics differential analysis
 # 04_DEP_supplementary_tables_NatureAging_FINAL.R
 #
 # Purpose
@@ -44,7 +44,13 @@ suppressPackageStartupMessages({
 # 01. Paths
 ###############################################################################
 
-project_root <- "C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2"
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+project_root <- here::here()
 
 out_dir <- file.path(
   project_root,

@@ -1,6 +1,6 @@
 ###############################################################################
 # ReDLat plasma proteomics — supplementary and robustness analyses
-#
+# ReDLat plasma proteomics differential analysis
 # This script generates supplementary analyses that support the primary
 # differential plasma proteomics workflow. It is designed to be run after
 # 01_data_processing_and_differential_analysis.R and, when needed, alongside
@@ -27,7 +27,13 @@
 # 00_setup
 ###############################################################################
 
-project_root <- "C:/Users/mnpiz/Desktop/DEPs_Proteomic_Publishable_V2"
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+
+library(here)
+
+project_root <- here::here()
 outdir <- project_root
 setwd(outdir)
 
