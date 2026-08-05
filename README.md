@@ -26,6 +26,10 @@ This repository contains analysis code, workflow runners, environment specificat
 
 The workflows use R, Python, and standard command-line tools. No non-standard hardware is required by the code, although the full WGCNA, nested-cross-validation, and simulation workflows can be computationally intensive.
 
+### Analytical environment
+
+The analyses reported in the manuscript were developed and executed on Windows 11 using R v.4.5.2 and Python v.3.13.11. Complete R package dependencies and versions are recorded in the repository-level `renv.lock` file. Python dependencies are specified in `environment/environment.yml` and `environment/requirements.txt`. No non-standard hardware is required.
+
 ### R environment
 
 The authoritative R dependency record is the repository-level `renv.lock` file. From the repository root, restore the environment with:
