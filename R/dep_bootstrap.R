@@ -131,11 +131,4 @@ dep_scan_text_for_private_paths <- function(root) {
   
   hits
 }
-  for (f in files) {
-    if (basename(f) %in% c("dep_bootstrap.R", "audit_dep_repository.R")) next
-    lines <- readLines(f, warn = FALSE)
-    idx <- which(vapply(lines, function(line) any(vapply(patterns, grepl, logical(1), x = line, perl = TRUE)), logical(1)))
-    if (length(idx)) hits[[f]] <- idx
-  }
-  hits
-}
+
