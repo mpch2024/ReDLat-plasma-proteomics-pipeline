@@ -1,0 +1,20 @@
+{
+  "issues": [],
+  "canonical_scripts": [
+    "01_WGCNA_prepare_input.R",
+    "02_WGCNA_construct_network.R",
+    "03_WGCNA_characterize_modules.R",
+    "04_WGCNA_module_trait_models.R",
+    "05_WGCNA_site_biomarker_sensitivity.R",
+    "06_WGCNA_association_stability.R",
+    "07_WGCNA_biomarker_fdr_correction.R",
+    "08_WGCNA_structural_preservation.R",
+    "09_WGCNA_network_quality.R",
+    "10_WGCNA_generate_main_figure3.R",
+    "11_WGCNA_generate_extended_data_figures.R",
+    "12_WGCNA_generate_supplementary_tables.R",
+    "13_WGCNA_generate_manuscript_text.R",
+    "14_WGCNA_build_submission_package.R",
+    "15_WGCNA_audit_submission_package.R"
+  ]
+}

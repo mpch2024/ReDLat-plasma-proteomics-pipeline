@@ -1,0 +1,62 @@
+[
+  {
+    "script": "01_DEP_primary_analysis.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "02_DEP_rebuild_sensitivity_fixed_map.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "03_DEP_APOE_ATN_equal_sample_models.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "04_DEP_country_site_robustness.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "05_DEP_matching_biomarker_sensitivity.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "06_DEP_ptau217_threshold_sweep.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "07_DEP_demographic_balance.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "08_DEP_generate_supplementary_tables.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "09_DEP_generate_source_data.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "10_DEP_generate_supplementary_data.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "11_DEP_generate_main_figure2.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  },
+  {
+    "script": "12_DEP_generate_extended_data_figures.R",
+    "removed_scientific_lines": [],
+    "added_scientific_lines": []
+  }
+]

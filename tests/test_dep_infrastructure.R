@@ -1,0 +1,13 @@
+# ReDLat DEP workflow — infrastructure tests
+args <- commandArgs(trailingOnly = FALSE)
+file_arg <- grep("^--file=", args, value = TRUE)
+script_file <- if (length(file_arg)) sub("^--file=", "", file_arg[1]) else file.path(getwd(), "tests", "test_dep_infrastructure.R")
+project_root <- normalizePath(file.path(dirname(script_file), ".."), winslash = "/", mustWork = TRUE)
+source(file.path(project_root, "R", "dep_bootstrap.R"))
+config <- dep_load_config(project_root)
+stopifnot(is.list(config))
+stopifnot(all(c("data_dir", "metadata_file", "adat_file", "result_root", "publication_root") %in% names(config)))
+stopifnot(normalizePath(config$result_root, mustWork = FALSE) != normalizePath(config$publication_root, mustWork = FALSE))
+stopifnot(inherits(try(dep_assert_no_direct_identifiers(data.frame(SampleId = "x"), "test"), silent = TRUE), "try-error"))
+stopifnot(isTRUE(dep_assert_no_direct_identifiers(data.frame(Record = "P0001", value = 1), "test")))
+message("DEP infrastructure tests passed.")
