@@ -87,7 +87,10 @@ dep_scan_text_for_private_paths <- function(root) {
     "ml_bootstrap.R",
     "audit_dep_repository.R",
     "audit_publication_candidate.R",
-    "audit_wgcna_publication.R"
+    "audit_wgcna_publication.R",
+    "24_ML_audit_publication_outputs.py",
+    "25_ML_audit_strict_pipeline.py",
+    "00_capture_software_environment.py"
   )
   
   patterns <- c(
