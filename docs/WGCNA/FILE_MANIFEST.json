@@ -1,0 +1,172 @@
+[
+  {
+    "path": ".Renviron.example",
+    "bytes": 245,
+    "sha256": "53ca092bf77a57e4aee844dffc89c344152f8792c5be192c8cd4c1130d41b626"
+  },
+  {
+    "path": ".github/workflows/wgcna-static-check.yml",
+    "bytes": 1332,
+    "sha256": "e3254544f444b09a423edab32ed9e058d6b71268e20f33818e2e3203d6dafd6e"
+  },
+  {
+    "path": ".gitignore",
+    "bytes": 487,
+    "sha256": "d4faf06d1503c51cdc17193bab469afbc8ad869c672187bc3fbd02614bca0166"
+  },
+  {
+    "path": ".here",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".redlat-root",
+    "bytes": 45,
+    "sha256": "214a287f0918892b54e4b5e66dbe7dabe9fa83901ebfc2fdfaf50596ac38e0db"
+  },
+  {
+    "path": "R/wgcna_bootstrap.R",
+    "bytes": 6044,
+    "sha256": "85845f552d1f760717743e9b11e4aa656ec773b54033e462c9edf552b86270bd"
+  },
+  {
+    "path": "README.md",
+    "bytes": 1158,
+    "sha256": "51d60257b922fdb8209ee77dc483fb06b65cd9548c861db5f73ad31062211a9d"
+  },
+  {
+    "path": "config/wgcna_config.example.R",
+    "bytes": 438,
+    "sha256": "8371c2a9b747d3f0ca41515a67577fda2741b1d326e0dfddd799acaab0354d07"
+  },
+  {
+    "path": "docs/FINAL_STATIC_AUDIT.md",
+    "bytes": 1392,
+    "sha256": "44be711896e2dd637a88f6648a01cdcd5d228df027fedd050a404969e54293bd"
+  },
+  {
+    "path": "docs/REQUIRED_PACKAGES.md",
+    "bytes": 480,
+    "sha256": "27453a9262db8ffa1d4568d5869ee994a5065464b80be8cf716546a0d3149956"
+  },
+  {
+    "path": "docs/SOFTWARE_ENVIRONMENT_RECORD.md",
+    "bytes": 1424,
+    "sha256": "c308bdb82691e509e3459143b739cd5c9c589f2681d85c3bb4ab7e51cc957d15"
+  },
+  {
+    "path": "docs/STATIC_AUDIT.json",
+    "bytes": 662,
+    "sha256": "e3b718e4260381ba1551303a24f0bd9173026fbb74eb1c31a2175abc64eaddda"
+  },
+  {
+    "path": "docs/WGCNA_AUDIT_REPORT.md",
+    "bytes": 1614,
+    "sha256": "3c3548cdfb1b358968794bb8b89c67aa9aa7484352dc50ccaa95ec309fc7b1ae"
+  },
+  {
+    "path": "docs/WGCNA_PIPELINE_MAP.md",
+    "bytes": 1870,
+    "sha256": "a195d79c4763293a1e9c2312e9a9f1b16574868d35ee098e21d1c9c961fc86f6"
+  },
+  {
+    "path": "scripts/WGCNA/01_WGCNA_prepare_input.R",
+    "bytes": 37498,
+    "sha256": "95c96044f2548fea819bd6a50f9ba6e6f4e44473b104a69e61c5de963988e75b"
+  },
+  {
+    "path": "scripts/WGCNA/02_WGCNA_construct_network.R",
+    "bytes": 41178,
+    "sha256": "41a959dfbb18e08aab05203538920b7068696d39603baa614f016ea15b531900"
+  },
+  {
+    "path": "scripts/WGCNA/03_WGCNA_characterize_modules.R",
+    "bytes": 59211,
+    "sha256": "d019f9f15f7ca75bae42708f4fec0d95f78c4bff051b80190278c4281983ea1b"
+  },
+  {
+    "path": "scripts/WGCNA/04_WGCNA_module_trait_models.R",
+    "bytes": 69542,
+    "sha256": "949aff2f2a9a3ec96bbcede5b10909c746d23bbcbab31ca44a900d85d6e1027e"
+  },
+  {
+    "path": "scripts/WGCNA/05_WGCNA_site_biomarker_sensitivity.R",
+    "bytes": 72851,
+    "sha256": "e5edc5e174221a1148664e0e9b93c135b583be34ed78afac475ec0a344c8bca1"
+  },
+  {
+    "path": "scripts/WGCNA/06_WGCNA_association_stability.R",
+    "bytes": 103222,
+    "sha256": "fd12d998a3d889c1de1abe68aced95ba7258cf96b8cec372d847c27c0a64bcd4"
+  },
+  {
+    "path": "scripts/WGCNA/07_WGCNA_biomarker_fdr_correction.R",
+    "bytes": 79987,
+    "sha256": "de85759f4b68233084f64ddbdbc18bfdb5ef35776f32d6b937a25c16280f0736"
+  },
+  {
+    "path": "scripts/WGCNA/08_WGCNA_structural_preservation.R",
+    "bytes": 84070,
+    "sha256": "d6a852f9f53bf414d9569e7d022d60b8e5e936b72b86341bc1ca115e262c5c51"
+  },
+  {
+    "path": "scripts/WGCNA/09_WGCNA_network_quality.R",
+    "bytes": 88105,
+    "sha256": "38db81d5ea3487ac77cf004e6f8f6504bcc702c3e89113f7f3f8573611bef888"
+  },
+  {
+    "path": "scripts/WGCNA/10_WGCNA_generate_main_figure3.R",
+    "bytes": 50281,
+    "sha256": "a4f312fb21da2880b32baa47dc4c8fae159ba2b80dee3b4dcb2f7e24f8d22ed1"
+  },
+  {
+    "path": "scripts/WGCNA/11_WGCNA_generate_extended_data_figures.R",
+    "bytes": 84238,
+    "sha256": "1b5a72d1a6bbe3cf377b75e8933db3839b0f8fc32b6efd6ed217bfcd9e4ac3b4"
+  },
+  {
+    "path": "scripts/WGCNA/12_WGCNA_generate_supplementary_tables.R",
+    "bytes": 32322,
+    "sha256": "3b088eab56ebe09e94913fddd8cc673a88a6a42fc234dcc471ebea6899fc941d"
+  },
+  {
+    "path": "scripts/WGCNA/13_WGCNA_generate_manuscript_text.R",
+    "bytes": 33935,
+    "sha256": "59a49d8388c958c8ea628f6a75c034bf999b498feae7913f50317ef1ce005147"
+  },
+  {
+    "path": "scripts/WGCNA/14_WGCNA_build_submission_package.R",
+    "bytes": 53156,
+    "sha256": "944a721b4058b369494f480c7c10b759422c6d42b618009ec1b1e872ddfa0de0"
+  },
+  {
+    "path": "scripts/WGCNA/15_WGCNA_audit_submission_package.R",
+    "bytes": 24498,
+    "sha256": "ab8576f3e9eeeb7467421f5a4d28dc2cd62d4d08ad2bf0bd3267a5c32f1c1423"
+  },
+  {
+    "path": "workflow/00_capture_software_environment.py",
+    "bytes": 18041,
+    "sha256": "05512dcbfd1dcc8d1c3a5ed75ae2fd295662f225d8855892b0f7a19793486a5d"
+  },
+  {
+    "path": "workflow/audit_wgcna_publication.R",
+    "bytes": 492,
+    "sha256": "5b57185d7d08026d8e2f6a69868053367c07ad840cca9351e2de1421c601f718"
+  },
+  {
+    "path": "workflow/run_wgcna_all.R",
+    "bytes": 488,
+    "sha256": "a348ab0bfa4972494cc694c5c6c300ce75f7faa7a1964bfc6abcd35c5db08f5d"
+  },
+  {
+    "path": "workflow/run_wgcna_analysis.R",
+    "bytes": 1786,
+    "sha256": "b81b5e98da1367e4185fce08623808853dfb81205d225b29c27fe6f8cfdc9ea3"
+  },
+  {
+    "path": "workflow/run_wgcna_reporting.R",
+    "bytes": 1710,
+    "sha256": "aeb00ac515004ac298090242e7afd165b69b932c4d5868a60104f0341bc1bc38"
+  }
+]

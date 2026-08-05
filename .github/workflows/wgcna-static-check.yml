@@ -1,0 +1,41 @@
+name: WGCNA static checks
+
+on:
+  push:
+    paths:
+      - "scripts/WGCNA/**"
+      - "R/wgcna_bootstrap.R"
+      - "workflow/**"
+  pull_request:
+    paths:
+      - "scripts/WGCNA/**"
+      - "R/wgcna_bootstrap.R"
+      - "workflow/**"
+
+jobs:
+  parse-and-privacy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Parse canonical R scripts
+        shell: Rscript {0}
+        run: |
+          files <- list.files("scripts/WGCNA", pattern = "\\.R$", full.names = TRUE)
+          invisible(lapply(files, parse))
+          invisible(lapply(list.files("workflow", pattern = "\\.R$", full.names = TRUE), parse))
+      - name: Check private paths and development references
+        shell: bash
+        run: |
+          ! grep -RInE 'C:/Users|/Users/|/home/[^/]+/|OneDrive|Desktop|ChatGPT|OpenAI|install\.packages|BiocManager::install|^[[:space:]]*setwd\(' \
+            scripts/WGCNA R workflow \
+            --exclude='wgcna_bootstrap.R' \
+            --exclude='dep_bootstrap.R' \
+            --exclude='ml_bootstrap.R' \
+            --exclude='audit_wgcna_publication.R' \
+            --exclude='audit_dep_repository.R' \
+            --exclude='audit_publication_candidate.R' \
+            --exclude='00_capture_software_environment.py'

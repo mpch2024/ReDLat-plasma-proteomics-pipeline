@@ -1,0 +1,67 @@
+[
+  {
+    "file": "scripts/DEP/01_DEP_primary_analysis.R",
+    "bytes": 97432,
+    "sha256": "f3af1edf3be6bd953da51215866aa8904df242de51342d2ee98e0a8b5a53c886"
+  },
+  {
+    "file": "scripts/DEP/02_DEP_rebuild_sensitivity_fixed_map.R",
+    "bytes": 32924,
+    "sha256": "9686ffb7e9375c8469126d7206c49b3e2a9b7e38c6e79cecc10e250f4d914899"
+  },
+  {
+    "file": "scripts/DEP/03_DEP_APOE_ATN_equal_sample_models.R",
+    "bytes": 24440,
+    "sha256": "3ace1dc0c9efe87350f0351d53b202517defd9a8c63413da4e3ad010ce288768"
+  },
+  {
+    "file": "scripts/DEP/04_DEP_country_site_robustness.R",
+    "bytes": 37629,
+    "sha256": "370ea49c488c2fe10c59c6e54700564aa3d2ac5d27708e4c81442acb9d5e9a60"
+  },
+  {
+    "file": "scripts/DEP/05_DEP_matching_biomarker_sensitivity.R",
+    "bytes": 61887,
+    "sha256": "12429b0bd567262d765acac20b8194b05ba629d4deafc06aec4e4d1995ec2999"
+  },
+  {
+    "file": "scripts/DEP/06_DEP_ptau217_threshold_sweep.R",
+    "bytes": 46225,
+    "sha256": "927560e61fac30a9b5653ad1010036104e3e8dd3fc99183479f73f0a3eadd402"
+  },
+  {
+    "file": "scripts/DEP/07_DEP_demographic_balance.R",
+    "bytes": 31277,
+    "sha256": "faf09f94ab4182087737a258bcae93841c8ca19698fdc412250c7dfd7d05efc6"
+  },
+  {
+    "file": "scripts/DEP/08_DEP_generate_supplementary_tables.R",
+    "bytes": 21838,
+    "sha256": "b3ab39b53542b4b36d8a92861e836724b060d477c487c40370edd924941aaf73"
+  },
+  {
+    "file": "scripts/DEP/09_DEP_generate_source_data.R",
+    "bytes": 41579,
+    "sha256": "db07f2d97a0753578c256fddb635582a596f5df5d71c63e8c0c65df3d07b6d5d"
+  },
+  {
+    "file": "scripts/DEP/10_DEP_generate_supplementary_data.R",
+    "bytes": 15994,
+    "sha256": "c951be4c69af4bad2dac843d9bd200776358268f3d7b74749c0bf0119ede9ff5"
+  },
+  {
+    "file": "scripts/DEP/11_DEP_generate_main_figure2.R",
+    "bytes": 55363,
+    "sha256": "d243f589b46c0106e9b12100f211fe082a93c128cc7fbb68781f22e9c42b59de"
+  },
+  {
+    "file": "scripts/DEP/12_DEP_generate_extended_data_figures.R",
+    "bytes": 76275,
+    "sha256": "578ca5e611738951ed77a996b0fcfe7c7d0c571ed94da3a0ee184f5f8e3be14f"
+  }
+    {
+    "file": "scripts/DEP/13_DEP_simulation_based_detectable_effect_analysis.R",
+    "bytes": 42994,
+    "sha256": "90c2993d937a808df18ae0ccadb132e36de4ceb30565511c0292cf8910de3527"
+  }
+]

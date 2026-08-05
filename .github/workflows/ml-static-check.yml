@@ -1,0 +1,18 @@
+name: ML static checks
+on:
+  push:
+  pull_request:
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m compileall python scripts workflow
+      - run: pip install pandas
+      - run: python scripts/ML/25_ML_audit_strict_pipeline.py
+      - name: Block private paths and automated installs
+        run: |
+          ! grep -RInE --exclude='25_ML_audit_strict_pipeline.py' '[A-Za-z]:[/\\]Users[/\\]|install\.packages|BiocManager::install|pip install|setwd\(' scripts python workflow R

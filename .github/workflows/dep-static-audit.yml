@@ -1,0 +1,31 @@
+name: DEP static audit
+
+on:
+  push:
+    paths:
+      - "scripts/DEP/**"
+      - "R/**"
+      - "workflow/**"
+      - "config/**"
+      - "tests/**"
+      - ".github/workflows/dep-static-audit.yml"
+  pull_request:
+    paths:
+      - "scripts/DEP/**"
+      - "R/**"
+      - "workflow/**"
+      - "config/**"
+      - "tests/**"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+      - name: Parse canonical R scripts
+        run: Rscript -e 'files <- c(list.files("scripts/DEP", "[.]R$", full.names=TRUE), list.files("R", "[.]R$", full.names=TRUE), list.files("workflow", "[.]R$", full.names=TRUE)); invisible(lapply(files, parse)); cat("Parsed", length(files), "R files\\n")'
+      - name: Run infrastructure tests
+        run: Rscript --vanilla tests/test_dep_infrastructure.R
+      - name: Audit local paths and repository privacy
+        run: REDLAT_PROJECT_ROOT="$GITHUB_WORKSPACE" Rscript --vanilla workflow/audit_dep_repository.R
