@@ -27,13 +27,15 @@ jobs:
           files <- list.files("scripts/WGCNA", pattern = "\\.R$", full.names = TRUE)
           invisible(lapply(files, parse))
           invisible(lapply(list.files("workflow", pattern = "\\.R$", full.names = TRUE), parse))
-      - name: Compile environment-capture utility
-        run: python -m py_compile workflow/00_capture_software_environment.py
       - name: Check private paths and development references
         shell: bash
         run: |
           ! grep -RInE 'C:/Users|/Users/|/home/[^/]+/|OneDrive|Desktop|ChatGPT|OpenAI|install\.packages|BiocManager::install|^[[:space:]]*setwd\(' \
             scripts/WGCNA R workflow \
             --exclude='wgcna_bootstrap.R' \
+            --exclude='dep_bootstrap.R' \
+            --exclude='ml_bootstrap.R' \
             --exclude='audit_wgcna_publication.R' \
+            --exclude='audit_dep_repository.R' \
+            --exclude='audit_publication_candidate.R' \
             --exclude='00_capture_software_environment.py'

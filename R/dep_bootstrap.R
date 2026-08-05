@@ -63,10 +63,74 @@ dep_assert_no_direct_identifiers <- function(x, label = "table") {
 }
 
 dep_scan_text_for_private_paths <- function(root) {
-  files <- list.files(root, recursive = TRUE, full.names = TRUE,
-                      pattern = "\\.(R|Rmd|py|md|txt|ya?ml|json)$", ignore.case = TRUE)
-  patterns <- c("[A-Za-z]:[/\\\\]Users[/\\\\]", "/Users/", "/home/[^/]+/", "OneDrive", "Desktop")
+  files <- list.files(
+    root,
+    recursive = TRUE,
+    full.names = TRUE,
+    pattern = "\\.(R|Rmd|py|md|txt|ya?ml|json)$",
+    ignore.case = TRUE
+  )
+  
+  # Ignore package libraries restored locally or by GitHub Actions.
+  files <- files[
+    !grepl(
+      "[/\\\\]renv[/\\\\](library|staging)[/\\\\]",
+      files,
+      perl = TRUE
+    )
+  ]
+  
+  # These files contain the privacy-detection patterns themselves.
+  scanner_files <- c(
+    "dep_bootstrap.R",
+    "wgcna_bootstrap.R",
+    "ml_bootstrap.R",
+    "audit_dep_repository.R",
+    "audit_publication_candidate.R",
+    "audit_wgcna_publication.R"
+  )
+  
+  patterns <- c(
+    "[A-Za-z]:[/\\\\]Users[/\\\\]",
+    "/Users/",
+    "/home/[^/]+/",
+    "OneDrive",
+    "Desktop"
+  )
+  
   hits <- list()
+  
+  for (f in files) {
+    if (basename(f) %in% scanner_files) next
+    
+    lines <- tryCatch(
+      readLines(f, warn = FALSE),
+      error = function(e) character(0)
+    )
+    
+    idx <- which(
+      vapply(
+        lines,
+        function(line) {
+          any(
+            vapply(
+              patterns,
+              function(pattern) grepl(pattern, line, perl = TRUE),
+              logical(1)
+            )
+          )
+        },
+        logical(1)
+      )
+    )
+    
+    if (length(idx) > 0L) {
+      hits[[f]] <- idx
+    }
+  }
+  
+  hits
+}
   for (f in files) {
     if (basename(f) %in% c("dep_bootstrap.R", "audit_dep_repository.R")) next
     lines <- readLines(f, warn = FALSE)
