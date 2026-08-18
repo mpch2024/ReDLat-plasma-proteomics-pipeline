@@ -1,0 +1,74 @@
+ReDLat plasma proteomics — processed reviewer-data execution order
+==================================================================
+
+IMPORTANT
+1. Place the three authorized reviewer inputs under data_private/reviewer_inputs/
+   or set REDLAT_REVIEWER_DATA_DIR to their approved local location.
+2. Run RUN_PRECHECK first.
+3. Participant-level/intermediate files under outputs/ remain local and untracked.
+4. Run R scripts under the manuscript-compatible package environment and Python
+   scripts under the documented Python environment.
+
+DEP
+---
+01_DEP_primary_analysis.R
+02_DEP_rebuild_sensitivity_fixed_map.R
+03_DEP_APOE_ATN_equal_sample_models.R
+04_DEP_country_site_robustness.R
+05_DEP_matching_biomarker_sensitivity.R
+06_DEP_ptau217_threshold_sweep.R
+07_DEP_demographic_balance.R
+08_DEP_generate_supplementary_tables.R
+09_DEP_generate_source_data.R
+10_DEP_generate_supplementary_data.R
+11_DEP_generate_main_figure2.R
+12_DEP_generate_extended_data_figures.R
+13_DEP_simulation_based_detectable_effect_analysis.R
+
+WGCNA
+-----
+01_WGCNA_prepare_input.R
+02_WGCNA_construct_network.R
+03_WGCNA_characterize_modules.R
+04_WGCNA_module_trait_models.R
+05_WGCNA_site_biomarker_sensitivity.R
+06_WGCNA_association_stability.R
+07_WGCNA_biomarker_fdr_correction.R
+08_WGCNA_structural_preservation.R
+09_WGCNA_network_quality.R
+10_WGCNA_generate_main_figure3.R
+11_WGCNA_generate_extended_data_figures.R
+12_WGCNA_generate_supplementary_tables.R
+13_WGCNA_generate_manuscript_text.R
+14_WGCNA_build_submission_package.R
+15_WGCNA_audit_submission_package.R
+
+ML
+--
+01_ML_create_primary_folds.R
+02_ML_fit_primary_dep_folds.R
+03_ML_run_primary_nested_cv.py
+04_ML_create_ptau_folds.R
+05_ML_fit_ptau_dep_folds.R
+06_ML_run_ptau_nested_cv.py
+07_ML_create_apoe_folds.R
+08_ML_fit_apoe_dep_folds.R
+09_ML_run_apoe_nested_cv.py
+10_ML_create_loco_folds.R
+11_ML_fit_loco_dep_folds.R
+12_ML_run_loco.py
+13_ML_evaluate_fixed_panel_ptau.py
+14_ML_run_clinical_regression.py
+15_ML_rebuild_matching.R  [audits/restores the exact submitted 191+191 cohort]
+16_ML_run_matched_analysis.py
+17_ML_meta_analyze_loco.py
+18_ML_plot_primary_results.py
+19_ML_plot_ptau_results.py
+20_ML_plot_delong_results.py
+21_ML_plot_loco_results.py
+22_ML_plot_loco_forest.py
+23_ML_generate_source_data.py
+24_ML_audit_publication_outputs.py
+
+Existing repository scripts 25–26 are intentionally preserved by the overlay and
+may be run according to their own documented role after the validated 01–24 chain.

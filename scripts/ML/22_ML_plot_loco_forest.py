@@ -34,6 +34,12 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Polygon
 
+# Rendering settings are intentionally identical to Script 17.
+FIGURE_WIDTH_CM = 12.0
+FIGURE_HEIGHT_CM = 9.0
+X_LIMITS = (0.50, 1.00)
+PANEL_LETTER = "e"
+
 PROJECT_DIR_OVERRIDE: Optional[str] = None
 PROJECT_DIR = CONFIG.project_root
 
@@ -55,7 +61,7 @@ for path, label in [
     if not path.exists():
         raise FileNotFoundError(
             f"{label} not found:\n{path}\n\n"
-            "Run 22_Meta_analysis_LOCO_AUC_by_country.ipynb first."
+            "Run scripts/ML/17_ML_meta_analyze_loco.py first."
         )
 
 country = pd.read_csv(COUNTRY_FILE)
@@ -71,7 +77,7 @@ if missing:
 
 country["Country"] = pd.Categorical(
     country["Country"],
-    categories=COUNTRY_ORDER,
+    categories=["Argentina", "Chile", "Colombia", "Mexico", "Peru"],
     ordered=True,
 )
 country = country.sort_values("Country").reset_index(drop=True)

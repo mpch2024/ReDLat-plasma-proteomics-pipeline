@@ -369,7 +369,7 @@ write_manuscript_supplementary_package <- function(overall_table, country_table,
     
     tbl2 <- tbl %>%
       dplyr::select(-any_of("Context")) %>%
-      rename(
+      dplyr::rename(
         `Recruitment context` = Level,
         `Total N` = N,
         `CN, n` = CN,
@@ -406,7 +406,7 @@ write_manuscript_supplementary_package <- function(overall_table, country_table,
   # ---------------------------------------------------------------------------
   openxlsx::addWorksheet(wb, "Composition_Tests")
   tests <- composition_tests %>%
-    rename(
+    dplyr::rename(
       Level = level,
       Variable = variable,
       Test = test,
@@ -1069,7 +1069,7 @@ site_group_counts <- NULL
 if (!is.na(site_var) && site_var %in% names(review_df)) {
   site_group_counts <- review_df %>%
     count(.data[[site_var]], SampleGroup, name = "n") %>%
-    rename(site = !!rlang::sym(site_var)) %>%
+    dplyr::rename(site = !!rlang::sym(site_var)) %>%
     tidyr::pivot_wider(names_from = SampleGroup, values_from = n, values_fill = 0) %>%
     mutate(total = CN + AD, percent_AD = 100 * AD / pmax(total, 1)) %>%
     arrange(desc(total))
@@ -1360,7 +1360,7 @@ if (!is.na(ptau_col) && !is.na(ab_col)) {
   biomarker_subset_summary <- biomarker_classified_df %>%
     group_by(SampleGroup, biomarker_complete, biomarker_consistent_group) %>%
     summarise(n = n(), .groups = "drop") %>%
-    rename(included_biomarker_consistent = biomarker_consistent_group)
+    dplyr::rename(included_biomarker_consistent = biomarker_consistent_group)
 
   biomarker_missingness_audit <- biomarker_classified_df %>%
     group_by(SampleGroup) %>%

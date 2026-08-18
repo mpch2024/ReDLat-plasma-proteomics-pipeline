@@ -1049,7 +1049,7 @@ build_workbook(
 # 09. COPY FINAL FIGURES
 ###############################################################################
 
-main_base <- "Figure3_WGCNA_COMPACT_CLASSIC_v16n_FINAL"
+main_base <- "Figure3_WGCNA_COMPACT_CLASSIC_v19_FINAL"
 main_figure_files <- c(
   file.path(S17_FINAL, "Illustrator_ready", "master_vectors", paste0(main_base, ".pdf")),
   file.path(S17_FINAL, "Illustrator_ready", "master_vectors", paste0(main_base, ".svg")),

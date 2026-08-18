@@ -1,52 +1,45 @@
-# Local configuration and credentials
-.Renviron
-config/dep_config.R
-config/wgcna_config.R
-config/ml_config.R
-config/private/
-
-# Restricted participant-level inputs
-data_private/**
-!data_private/README.md
-data/
+# Governed participant-level inputs: NEVER commit
+data_private/reviewer_inputs/*
+!data_private/reviewer_inputs/README.md
 *.adat
-*.RData
-*.rds
-*.pkl
-*.joblib
+
+# Reviewer/restricted data accidentally placed elsewhere
+data/*.csv
+data/*.xlsx
+data/*.zip
+*SampleId_Study_ID_linkage*
+*RecruitmentSite_neutral_code_crosswalk*
+*PRIVATE_DO_NOT_SHARE*
 
 # Generated analysis outputs
-result/**
-!result/README.md
-results/
-publication_candidate/DEP/**
-!publication_candidate/DEP/README.md
-publication_candidate/WGCNA/**
-!publication_candidate/WGCNA/README.md
-publication_candidate/ML/**
-!publication_candidate/ML/README.md
-internal/
+outputs/
+result/
+publication_candidate/
 
-# Common participant-level exports
-*sample_metadata*.csv
-*eigengenes_per_sample*.csv
-*expression_matrix*.csv
-*sample_ids*.csv
-*participant*.csv
-matched_ids*.csv
-Matched_Output*.csv
-oof_predictions*.csv
-fold_*_ids.csv
+# Local configuration / credentials
+.Renviron
+.env
+*.key
+*.token
 
-# R, Python, editor and operating-system files
+# R / RStudio
 .Rhistory
+.RData
 .Ruserdata
 .Rproj.user/
+
+# Python
 __pycache__/
 *.py[cod]
-.ipynb_checkpoints/
 .venv/
-*.tmp
-~$*
+venv/
+
+# Temporary / patch artifacts
+*.bak
+*.bak_*
+PATCH_*
+RECOVER_HISTORICAL_*
+
+# OS
 .DS_Store
 Thumbs.db

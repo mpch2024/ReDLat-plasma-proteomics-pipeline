@@ -249,7 +249,7 @@ if (!all(vapply(core_package_probe, nonempty_file, logical(1)))) {
 # 03. EXPECTED FINAL ARTIFACTS
 ###############################################################################
 
-main_base <- "Figure3_WGCNA_COMPACT_CLASSIC_v16n_FINAL"
+main_base <- "Figure3_WGCNA_COMPACT_CLASSIC_v19_FINAL"
 main_expected <- file.path(
   PACKAGE_ROOT,
   "Figures",

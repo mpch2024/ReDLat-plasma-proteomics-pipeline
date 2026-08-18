@@ -1012,14 +1012,10 @@ required_objects <- c(
   "gene_module_assignment"
 )
 
-missing_objects <- required_objects[
-  !vapply(
-    required_objects,
-    exists,
-    logical(1),
-    inherits = FALSE
-  )
-]
+missing_objects <- setdiff(
+  required_objects,
+  ls(envir = environment())
+)
 
 if (length(missing_objects) > 0) {
   stop(
@@ -2847,76 +2843,80 @@ if (old_site_available) {
   )
 }
 
-comparison_summary <- dplyr::bind_rows(
-  if (nrow(country_old_vs_fixed) > 0) {
-    country_old_vs_fixed %>%
-      dplyr::mutate(
-        Analysis = "Country"
-      )
-  } else {
-    tibble::tibble()
-  },
-  if (nrow(site_old_vs_fixed) > 0) {
-    site_old_vs_fixed %>%
-      dplyr::mutate(
-        Analysis = "Site"
-      )
-  } else {
-    tibble::tibble()
-  }
-) %>%
-  dplyr::group_by(
-    Analysis,
-    Module
+if (nrow(country_old_vs_fixed) > 0 || nrow(site_old_vs_fixed) > 0) {
+  comparison_summary <- dplyr::bind_rows(
+    if (nrow(country_old_vs_fixed) > 0) {
+      country_old_vs_fixed %>%
+        dplyr::mutate(
+          Analysis = "Country"
+        )
+    } else {
+      tibble::tibble()
+    },
+    if (nrow(site_old_vs_fixed) > 0) {
+      site_old_vs_fixed %>%
+        dplyr::mutate(
+          Analysis = "Site"
+        )
+    } else {
+      tibble::tibble()
+    }
   ) %>%
-  dplyr::summarise(
-    N_comparisons =
-      dplyr::n(),
-    Original_module_size =
-      dplyr::first(
-        Original_module_size
-      ),
-    Fixed_module_size =
-      dplyr::first(
-        Fixed_module_size
-      ),
-    Module_was_restricted =
-      dplyr::first(
-        Module_was_restricted
-      ),
-    Mean_delta_Zsummary =
-      safe_mean(
-        Delta_Zsummary
-      ),
-    Mean_abs_delta_Zsummary =
-      safe_mean(
-        Abs_delta_Zsummary
-      ),
-    Maximum_abs_delta_Zsummary =
-      safe_max(
-        Abs_delta_Zsummary
-      ),
-    Preservation_class_agreement_rate =
-      safe_proportion(
-        Preservation_class_unchanged
-      ),
-    N_crossed_Zsummary_2 =
-      sum(
-        Crossed_Zsummary_2_threshold,
-        na.rm = TRUE
-      ),
-    N_crossed_Zsummary_10 =
-      sum(
-        Crossed_Zsummary_10_threshold,
-        na.rm = TRUE
-      ),
-    .groups = "drop"
-  ) %>%
-  dplyr::left_join(
-    module_reference,
-    by = "Module"
-  )
+    dplyr::group_by(
+      Analysis,
+      Module
+    ) %>%
+    dplyr::summarise(
+      N_comparisons =
+        dplyr::n(),
+      Original_module_size =
+        dplyr::first(
+          Original_module_size
+        ),
+      Fixed_module_size =
+        dplyr::first(
+          Fixed_module_size
+        ),
+      Module_was_restricted =
+        dplyr::first(
+          Module_was_restricted
+        ),
+      Mean_delta_Zsummary =
+        safe_mean(
+          Delta_Zsummary
+        ),
+      Mean_abs_delta_Zsummary =
+        safe_mean(
+          Abs_delta_Zsummary
+        ),
+      Maximum_abs_delta_Zsummary =
+        safe_max(
+          Abs_delta_Zsummary
+        ),
+      Preservation_class_agreement_rate =
+        safe_proportion(
+          Preservation_class_unchanged
+        ),
+      N_crossed_Zsummary_2 =
+        sum(
+          Crossed_Zsummary_2_threshold,
+          na.rm = TRUE
+        ),
+      N_crossed_Zsummary_10 =
+        sum(
+          Crossed_Zsummary_10_threshold,
+          na.rm = TRUE
+        ),
+      .groups = "drop"
+    ) %>%
+    dplyr::left_join(
+      module_reference,
+      by = "Module"
+    )
 
+} else {
+  comparison_summary <- tibble::tibble()
+}
 if (nrow(comparison_summary) > 0) {
   safe_write_csv(
     comparison_summary,

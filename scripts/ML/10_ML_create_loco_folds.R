@@ -51,16 +51,15 @@ table(meta$Country, meta$SampleGroup)
 ###############################################################################
 
 meta <- meta %>%
-  filter(SampleGroup %in% c("CN", "AD")) %>%
-  filter(!SampleId %in% EXCLUDED_SAMPLE_IDS) %>%
+  filter(
+    SampleGroup %in% c("CN", "AD")
+  ) %>%
   filter(
     !is.na(Age),
     !is.na(Sex),
     !is.na(Country),
     !is.na(Education)
   )
-
-readr::write_csv(tibble::tibble(Stage = "LOCO-eligible cohort", N = nrow(meta), CN = sum(meta$SampleGroup == "CN"), AD = sum(meta$SampleGroup == "AD"), Countries = dplyr::n_distinct(meta$Country), Excluded_IDs_configured = length(EXCLUDED_SAMPLE_IDS)), file.path(OUT_DIR, "cohort_flow.csv"))
 
 ###############################################################################
 # CREATE 5 FOLDS COUNTRIES

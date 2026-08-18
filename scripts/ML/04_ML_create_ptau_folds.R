@@ -48,26 +48,22 @@ meta <- read.csv(
 # KEEP CN / AD ONLY
 ###############################################################################
 
-ptau_candidates <- c("p-tau217", "p.tau217", "pTau217", "ptau217")
-ptau_col <- ptau_candidates[ptau_candidates %in% names(meta)][1]
-if (is.na(ptau_col)) stop("No p-tau217 column found in metadata.", call. = FALSE)
 meta <- meta %>%
-  filter(SampleGroup %in% c("CN", "AD")) %>%
-  filter(!SampleId %in% EXCLUDED_SAMPLE_IDS) %>%
+  filter(
+    SampleGroup %in% c("CN", "AD")
+  ) %>%
   filter(
     !is.na(Age),
     !is.na(Sex),
     !is.na(Country),
     !is.na(Education),
-    !is.na(.data[[ptau_col]])
+    !is.na(p.tau217)
   )
 
 cat("\n=====================\n")
 cat("Subjects:", nrow(meta), "\n")
 print(table(meta$SampleGroup))
 cat("=====================\n")
-
-readr::write_csv(tibble::tibble(Stage = "Fold-eligible cohort", N = nrow(meta), CN = sum(meta$SampleGroup == "CN"), AD = sum(meta$SampleGroup == "AD"), Excluded_IDs_configured = length(EXCLUDED_SAMPLE_IDS)), file.path(OUT_DIR, "cohort_flow.csv"))
 
 ###############################################################################
 # CREATE 5 STRATIFIED FOLDS
@@ -147,8 +143,8 @@ audit <- bind_rows(
       MeanEducation = round(mean(tmp$Education),1),
       SDEducation = round(sd(tmp$Education),1),
 
-      Male = sum(tmp$Sex == "2"),
-      Female = sum(tmp$Sex == "1")
+      Male = sum(toupper(as.character(tmp$Sex)) %in% c("2", "M", "MALE"), na.rm = TRUE),
+      Female = sum(toupper(as.character(tmp$Sex)) %in% c("1", "F", "FEMALE"), na.rm = TRUE)
     )
 
   })

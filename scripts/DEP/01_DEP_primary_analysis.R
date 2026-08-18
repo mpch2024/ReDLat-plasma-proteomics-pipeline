@@ -1,9 +1,9 @@
 ###############################################################################
 # ReDLat plasma proteomics — DEP workflow
 # 01. Primary differential-abundance analysis
-# Requires: Private clinical metadata and SOMAscan ADAT data
+# Requires: three processed reviewer CSVs (metadata, log2 SOMAmer matrix, annotation)
 # Produces: QC, DEP results, enrichment and analysis workspace
-# Data policy: participant-level data and intermediate outputs remain local.
+# Data policy: pseudonymized reviewer data and participant-level intermediate outputs remain local.
 ###############################################################################
 
 # -----------------------------------------------------------------------------
@@ -18,6 +18,7 @@ if (nzchar(.project_root_env)) {
   stop("Package 'here' is required. Restore the project environment with renv::restore().", call. = FALSE)
 }
 source(file.path(project_root, "R", "dep_bootstrap.R"), local = FALSE)
+source(file.path(project_root, "R", "reviewer_data_adapter.R"), local = FALSE)
 DEP_CONFIG <- dep_load_config(project_root)
 analysis_root <- DEP_CONFIG$result_root
 publication_root <- DEP_CONFIG$publication_root
@@ -69,7 +70,7 @@ SCRIPT_ID <- "01_data_processing_and_differential_analysis"
 SCRIPT_ROLE <- "Primary data processing, differential expression, corrected enrichment, and internal robustness analyses"
 
 required_pkgs <- c(
-  "SomaDataIO", "dplyr", "tidyr", "purrr", "ggplot2", "ggrepel",
+  "dplyr", "tidyr", "purrr", "ggplot2", "ggrepel",
   "tibble", "stringr", "forcats", "readr", "patchwork", "limma",
   "ggpubr", "openxlsx", "metafor", "msigdbr", "rlang",
   "clusterProfiler", "org.Hs.eg.db", "BiocParallel", "ReactomePA", "DOSE"
@@ -103,7 +104,7 @@ subdirs <- c(
 )
 invisible(lapply(file.path(analysis_root, subdirs), dir.create, recursive = TRUE, showWarnings = FALSE))
 
-missing_input_files <- c(csv_file, adat_file)[!file.exists(c(csv_file, adat_file))]
+missing_input_files <- c(csv_file, DEP_CONFIG$proteomics_file, DEP_CONFIG$annotation_file)[!file.exists(c(csv_file, DEP_CONFIG$proteomics_file, DEP_CONFIG$annotation_file))]
 if (length(missing_input_files) > 0) {
   stop("Missing required input files:\n", paste(missing_input_files, collapse = "\n"))
 }
@@ -266,56 +267,6 @@ ensure_count_cols <- function(tbl, group_cols = c("CN", "AD")) {
 ###############################################################################
 # Annotation and DEP helpers
 ###############################################################################
-
-extract_adat_annotation_from_table <- function(adat_file, max_annotation_lines = 500) {
-  lines <- readLines(adat_file, warn = FALSE)
-  table_begin <- grep("^\\^TABLE_BEGIN", lines)
-  if (length(table_begin) == 0) stop("Could not find ^TABLE_BEGIN in the ADAT file.")
-  table_begin <- table_begin[1]
-  candidate_end <- min(length(lines), table_begin + max_annotation_lines)
-  meta_lines <- lines[(table_begin + 1):candidate_end]
-  split_lines <- strsplit(meta_lines, "\t", fixed = TRUE)
-  find_row <- function(row_name) {
-    idx <- which(vapply(split_lines, function(x) length(x) > 0 && row_name %in% x, logical(1)))
-    if (length(idx) == 0) return(NULL)
-    x <- split_lines[[idx[1]]]
-    pos <- which(x == row_name)[1]
-    x[(pos + 1):length(x)]
-  }
-  seq_id <- find_row("SeqId")
-  if (is.null(seq_id)) {
-    adat_obj <- tryCatch(SomaDataIO::read_adat(adat_file), error = function(e) NULL)
-    ai <- tryCatch(SomaDataIO::getAnalyteInfo(adat_obj), error = function(e) NULL)
-    if (!is.null(ai) && all(c("AptName", "SeqId") %in% names(ai))) {
-      return(tibble::as_tibble(ai) %>% dplyr::mutate(dplyr::across(dplyr::everything(), as.character)))
-    }
-    stop("Could not find SeqId row in ADAT annotation block and SomaDataIO fallback failed.")
-  }
-  n <- length(seq_id)
-  safe_row <- function(row_name) {
-    vals <- find_row(row_name)
-    if (is.null(vals)) return(rep(NA_character_, n))
-    length(vals) <- n
-    vals
-  }
-  tibble::tibble(
-    SeqId = seq_id,
-    AptName = paste0("seq.", gsub("-", ".", seq_id)),
-    SeqIdVersion = safe_row("SeqIdVersion"),
-    SomaId = safe_row("SomaId"),
-    TargetFullName = safe_row("TargetFullName"),
-    Target = safe_row("Target"),
-    UniProt = safe_row("UniProt"),
-    EntrezGeneID = safe_row("EntrezGeneID"),
-    EntrezGeneSymbol = safe_row("EntrezGeneSymbol"),
-    Organism = safe_row("Organism"),
-    Units = safe_row("Units"),
-    Type = safe_row("Type"),
-    Dilution = safe_row("Dilution")
-  ) %>%
-    dplyr::mutate(dplyr::across(dplyr::everything(), ~ trimws(as.character(.x)))) %>%
-    dplyr::mutate(dplyr::across(dplyr::everything(), ~ dplyr::na_if(.x, "")))
-}
 
 build_annotation_table <- function(soma_info_internal, seq_cols) {
   seq_key_tbl <- tibble::tibble(AptName = as.character(seq_cols))
@@ -659,67 +610,39 @@ run_clinical_severity_models <- function(dep_df, seq_cols, annot_tbl, out_folder
 
 message("01_import_annotation_qc")
 
-meta_info_new <- read.csv(csv_file, check.names = FALSE, stringsAsFactors = FALSE)
-required_columns(meta_info_new, c("SampleId", "Sex", "Age", "Country", "Education", "ApoE"), "metadata CSV")
+reviewer_inputs <- reviewer_load_aptamer_data(
+  metadata_file = csv_file,
+  proteomics_file = DEP_CONFIG$proteomics_file,
+  annotation_file = DEP_CONFIG$annotation_file
+)
 
-meta_info_new <- meta_info_new %>%
-  dplyr::mutate(
-    SampleId = as.character(SampleId),
-    Sex = dplyr::recode(as.character(Sex), "1" = "F", "2" = "M", .default = as.character(Sex)),
-    Mini.SEA = pick_col(., c("Mini.SEA", "Mini-SEA")),
-    T.ADLQ = pick_col(., c("T.ADLQ", "T-ADLQ")),
-    p.tau217 = pick_col(., c("p.tau217", "p-tau217", "p_tau217")),
-    p.tau181 = pick_col(., c("p.tau181", "p-tau181", "p_tau181")),
-    ratio.AB42.40 = pick_col(., c("ratio.AB42.40", "ratio AB42/40", "ratio_AB42_40")),
-    ApoE = norm_char(ApoE),
-    APOE_group = dplyr::case_when(
-      is.na(ApoE) | ApoE == "" ~ "Unknown",
-      ApoE %in% c("e2/e4", "e3/e4", "e4/e4") ~ "E4 carrier",
-      ApoE %in% c("e2/e2", "e2/e3", "e3/e3") ~ "Non-E4",
-      TRUE ~ "Other"
-    ),
-    APOE4_carrier = dplyr::case_when(
-      ApoE %in% c("e2/e4", "e3/e4", "e4/e4") ~ 1,
-      ApoE %in% c("e2/e2", "e2/e3", "e3/e3") ~ 0,
-      TRUE ~ NA_real_
-    )
-  )
+meta_info_new <- reviewer_inputs$metadata
+required_columns(meta_info_new, c("SampleId", "Sex", "Age", "Country", "Education", "ApoE"), "reviewer metadata")
 
-my_adat <- SomaDataIO::read_adat(adat_file)
-my_adat$SampleId <- as.character(my_adat$SampleId)
-soma_info_internal <- extract_adat_annotation_from_table(adat_file)
+# Compatibility objects preserve the structure expected by the submitted code.
+# my_adat is an in-memory data.frame reconstructed as normalized-RFU-compatible
+# values from the released log2 matrix; it is not an ADAT file.
+my_adat <- reviewer_inputs$proteomics_raw_compat
+soma_info_internal <- reviewer_inputs$annotation
 
-sample_data <- meta_info_new %>% dplyr::left_join(my_adat, by = "SampleId", suffix = c(".csv", ".adat"))
-
-if ("SampleType.csv" %in% names(sample_data) && "SampleType.adat" %in% names(sample_data)) {
-  sample_data <- sample_data %>% dplyr::mutate(SampleType = dplyr::coalesce(`SampleType.adat`, `SampleType.csv`))
-}
-if ("SampleGroup.csv" %in% names(sample_data) && "SampleGroup.adat" %in% names(sample_data)) {
-  sample_data <- sample_data %>% dplyr::mutate(SampleGroup = dplyr::coalesce(`SampleGroup.adat`, `SampleGroup.csv`))
-}
-if ("RowCheck.adat" %in% names(sample_data) && !"RowCheck" %in% names(sample_data)) {
-  sample_data <- sample_data %>% dplyr::mutate(RowCheck = `RowCheck.adat`)
-}
-if ("PlateId.adat" %in% names(sample_data) && !"PlateId" %in% names(sample_data)) {
-  sample_data <- sample_data %>% dplyr::mutate(PlateId = `PlateId.adat`)
-}
-if (!"SampleType" %in% names(sample_data)) stop("SampleType could not be recovered after CSV + ADAT merge.")
-if (!"SampleGroup" %in% names(sample_data)) stop("SampleGroup could not be recovered after CSV + ADAT merge.")
+sample_data <- meta_info_new %>%
+  dplyr::left_join(my_adat, by = "SampleId")
 
 sample_data_raw_merged <- sample_data
-sample_data <- sample_data %>% dplyr::filter(is.na(RowCheck) | RowCheck == "PASS")
 
+if (!"SampleType" %in% names(sample_data)) sample_data$SampleType <- "Sample"
+if (!"SampleGroup" %in% names(sample_data)) stop("SampleGroup was not found in reviewer metadata.")
+if (!"RowCheck" %in% names(sample_data)) sample_data$RowCheck <- NA_character_
+if (!"PlateId" %in% names(sample_data)) sample_data$PlateId <- NA_character_
+
+# The reviewer dataset is already the post-QC analysis release. No additional
+# RowCheck exclusion is introduced here.
 seq_cols <- grep("^seq[._]", names(sample_data), value = TRUE)
-if (length(seq_cols) == 0) stop("No seq.* or seq_* columns found after merge.")
+if (length(seq_cols) == 0) stop("No seq.* or seq_* columns found after reviewer-data merge.")
 
-annot_tbl <- build_annotation_table(soma_info_internal, seq_cols)
-protein_universe <- soma_info_internal %>%
-  dplyr::mutate(AptName = as.character(AptName), Organism = as.character(Organism), Type = as.character(Type), EntrezGeneSymbol = as.character(EntrezGeneSymbol)) %>%
-  dplyr::filter(Organism == "Human", Type == "Protein", !is.na(EntrezGeneSymbol), EntrezGeneSymbol != "") %>%
-  dplyr::pull(AptName) %>%
-  unique() %>%
-  intersect(seq_cols)
-if (length(protein_universe) == 0) stop("No proteins matched the internal ADAT protein universe filtering.")
+annot_tbl <- reviewer_inputs$annotation
+protein_universe <- reviewer_inputs$protein_universe
+if (length(protein_universe) == 0) stop("No proteins matched the reviewer annotation universe.")
 
 protein_universe_audit <- tibble::tibble(
   metric = c("seq_columns_detected", "adat_annotation_rows", "human_protein_rows_with_gene_symbol", "protein_universe_intersecting_expression_columns", "annotation_rows_with_missing_gene_symbol"),
@@ -733,10 +656,10 @@ protein_universe_audit <- tibble::tibble(
 )
 
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Raw metadata rows", nrow(meta_info_new))
-analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Merged metadata + ADAT rows", nrow(sample_data_raw_merged))
+analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Merged reviewer metadata + proteomics rows", nrow(sample_data_raw_merged))
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Rows after RowCheck PASS or missing", nrow(sample_data))
 analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Detected seq columns", length(seq_cols))
-analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Internal ADAT protein universe", length(protein_universe))
+analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Reviewer protein universe", length(protein_universe))
 
 safe_write_csv(soma_info_internal, file.path(analysis_root, "01_qc", "annotations", "soma_info_internal_from_adat.csv"))
 safe_write_csv(annot_tbl, file.path(analysis_root, "01_qc", "annotations", "protein_annotation_dictionary.csv"))
@@ -1610,7 +1533,7 @@ analysis_checkpoints <- add_checkpoint(analysis_checkpoints, "Final gene-collaps
 
 analysis_manifest <- tibble::tibble(
   item = c(
-    "script", "project_root", "csv_file", "adat_file", "main_fdr", "strict_fdr", "main_groups",
+    "script", "project_root", "csv_file", "proteomics_file", "main_fdr", "strict_fdr", "main_groups",
     "n_raw_metadata", "n_merged_rowcheck_pass", "n_dep_samples", "n_dep_CN", "n_dep_AD",
     "n_seq_cols", "n_protein_universe_internal_adat", "n_gene_collapsed_universe",
     "n_main_dep_genes_fdr005", "n_main_dep_genes_fdr001",
@@ -1622,7 +1545,7 @@ analysis_manifest <- tibble::tibble(
     "n_model_formulas_logged", "all_logged_designs_full_rank"
   ),
   value = c(
-    "01_data_processing_and_differential_analysis", project_root, csv_file, adat_file,
+    "01_data_processing_and_differential_analysis", project_root, csv_file, DEP_CONFIG$proteomics_file,
     as.character(MAIN_FDR), as.character(STRICT_FDR), paste(MAIN_GROUPS, collapse = ","),
     as.character(nrow(meta_info_new)), as.character(nrow(sample_data)), as.character(nrow(dep_df)),
     as.character(sum(dep_df$SampleGroup == "CN", na.rm = TRUE)),
@@ -1648,7 +1571,7 @@ safe_write_csv(model_design_diagnostics, file.path(analysis_root, "07_manifest",
 writeLines(capture.output(utils::sessionInfo()), con = file.path(analysis_root, "07_manifest", "sessionInfo.txt"))
 
 workspace_objects <- c(
-  "project_root", "outdir", "csv_file", "adat_file", "MAIN_GROUPS", "MAIN_FDR", "STRICT_FDR", "RUN_FLAGS",
+  "project_root", "outdir", "csv_file", "proteomics_file", "MAIN_GROUPS", "MAIN_FDR", "STRICT_FDR", "RUN_FLAGS",
   "sample_data_raw_merged", "sample_data", "meta_info_new", "my_adat", "soma_info_internal",
   "annot_tbl", "seq_cols", "protein_universe", "protein_universe_audit",
   "analysis_df", "normalized_expr_all", "normalized_expr_CN_AD", "normalized_expr", "protein_vars_present",

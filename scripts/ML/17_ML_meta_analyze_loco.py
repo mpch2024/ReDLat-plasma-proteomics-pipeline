@@ -21,6 +21,13 @@ from redlat_ml.config import load_config, require_files
 CONFIG = load_config(__file__)
 
 # ============================================================
+# 0. OPTIONAL INSTALLATION
+# ============================================================
+# Run only if a package is missing:
+#
+# %pip install numpy pandas scipy scikit-learn matplotlib openpyxl pillow
+
+# ============================================================
 # 1. IMPORTS AND USER SETTINGS
 # ============================================================
 
@@ -39,6 +46,22 @@ from scipy.special import expit, logit
 from sklearn.metrics import roc_auc_score
 
 warnings.filterwarnings("ignore")
+
+# ============================================================
+# LOCO meta-analysis settings
+# ============================================================
+ALPHA = 0.05
+MODIFIED_HARTUNG_KNAPP = True
+BOOTSTRAP_REPEATS = 2000
+RANDOM_STATE = 42
+FLIP_SCORES_IF_AUC_BELOW_HALF = False
+
+# Figure-only settings; these do not affect meta-analysis estimates.
+FIGURE_WIDTH_CM = 12.0
+FIGURE_HEIGHT_CM = 9.0
+X_LIMITS = (0.50, 1.00)
+PANEL_LETTER = "e"
+
 
 # ------------------------------------------------------------
 # Project path
@@ -358,6 +381,7 @@ def safe_logit_auc(auc_value: float) -> float:
     return float(logit(clipped))
 
 
+ALPHA = 0.05
 def country_auc_table(
     data: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -1052,12 +1076,12 @@ manifest = {
     "interpretation": (
         "Internal geographic robustness; not external validation."
     ),
-    "project_dir": str(PROJECT_DIR),
+    "project": "ReDLat plasma proteomics reproducibility package",
     "inputs": {
-        "master_file": str(MASTER_FILE),
-        "oof_predictions": str(OOF_FILE),
-        "reported_metrics": str(METRICS_FILE),
-        "roc_curves": str(ROC_FILE),
+        "master_file": "outputs/ML/private/derived/ReDLat_ML_gene_master_RAW.csv",
+        "oof_predictions": "outputs/ML/private/loco/02_nested_cv/oof_predictions.csv",
+        "reported_metrics": "outputs/ML/private/loco/02_nested_cv/metrics_nestedCV.csv",
+        "roc_curves": "outputs/ML/private/loco/02_nested_cv/roc_curves.csv",
     },
     "settings": {
         "alpha": ALPHA,
@@ -1076,13 +1100,13 @@ manifest = {
         "flip_scores_below_half": FLIP_SCORES_IF_AUC_BELOW_HALF,
     },
     "outputs": {
-        "country_csv": str(country_csv),
-        "summary_csv": str(summary_csv),
-        "source_xlsx": str(source_xlsx),
-        "figure_pdf": str(figure_paths[0]),
-        "figure_svg": str(figure_paths[1]),
-        "figure_png": str(figure_paths[2]),
-        "figure_tiff": str(figure_paths[3]),
+        "country_csv": f"source_data/{country_csv.name}",
+        "summary_csv": f"source_data/{summary_csv.name}",
+        "source_xlsx": f"source_data/{source_xlsx.name}",
+        "figure_pdf": figure_paths[0].name,
+        "figure_svg": figure_paths[1].name,
+        "figure_png": figure_paths[2].name,
+        "figure_tiff": figure_paths[3].name,
     },
 }
 

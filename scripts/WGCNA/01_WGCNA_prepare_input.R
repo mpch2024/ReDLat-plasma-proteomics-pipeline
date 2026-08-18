@@ -588,7 +588,22 @@ candidate_annotation <- as.data.frame(annot_tbl) %>%
     AptName %in% names(sample_data),
     AptName %in% as.character(protein_universe)
   ) %>%
-  dplyr::distinct(AptName, .keep_all = TRUE)
+  dplyr::distinct(AptName, .keep_all = TRUE) %>%
+  dplyr::select(
+    -dplyr::any_of(c(
+      "n_non_missing_primary",
+      "missing_prop_primary",
+      "median_log2_RFU_primary",
+      "MAD_log2_RFU_primary",
+      "SD_log2_RFU_primary",
+      "eligible_for_selection",
+      "selection_rank_within_gene",
+      "n_eligible_candidates_for_gene",
+      "Selected_for_gene_matrix",
+      "Gene_matrix_column",
+      "Selection_rule"
+    ))
+  )
 
 if (nrow(candidate_annotation) == 0) {
   stop(

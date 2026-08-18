@@ -1,7 +1,7 @@
 ###############################################################################
 # ReDLat plasma proteomics — machine-learning workflow
 # 05. Fit p-tau217 DEP folds
-# Requires: Script 04 outputs, metadata and ADAT
+# Requires: Script 04 outputs, reviewer metadata and proteomics
 # Produces: training-fold candidate lists
 # Data policy: participant-level inputs and predictions remain local.
 ###############################################################################
@@ -14,6 +14,7 @@
   stop("Package 'here' is required. Restore the R environment before running the workflow.", call. = FALSE)
 }
 source(file.path(.project_root, "R", "ml_bootstrap.R"), local = FALSE)
+source(file.path(.project_root, "R", "reviewer_data_adapter.R"), local = FALSE)
 ML_CONFIG <- ml_load_config(.project_root)
 EXCLUDED_SAMPLE_IDS <- ml_read_excluded_ids(ML_CONFIG)
 
@@ -37,7 +38,7 @@ set.seed(SEED_GLOBAL)
 options(stringsAsFactors = FALSE)
 
 required_pkgs <- c(
-  "SomaDataIO", "dplyr", "tidyr", "purrr", "tibble", "stringr",
+  "dplyr", "tidyr", "purrr", "tibble", "stringr",
   "readr", "limma", "openxlsx"
 )
 
@@ -48,7 +49,7 @@ if (length(missing_pkgs) > 0L) {
 }
 invisible(lapply(required_pkgs, library, character.only = TRUE))
 
-missing_input_files <- c(csv_file, adat_file)[!file.exists(c(csv_file, adat_file))]
+missing_input_files <- c(csv_file, ML_CONFIG$proteomics_file, ML_CONFIG$annotation_file)[!file.exists(c(csv_file, ML_CONFIG$proteomics_file, ML_CONFIG$annotation_file))]
 if (length(missing_input_files) > 0) {
   stop("Missing required input files:\n", paste(missing_input_files, collapse = "\n"))
 }
@@ -125,60 +126,6 @@ validate_design_matrix <- function(design, model_name = "model") {
     warning(model_name, " design matrix is rank deficient. See model_design_diagnostics.csv.")
   }
   out
-}
-
-extract_adat_annotation_from_table <- function(adat_file, max_annotation_lines = 500) {
-  lines <- readLines(adat_file, warn = FALSE)
-  table_begin <- grep("^\\^TABLE_BEGIN", lines)
-  if (length(table_begin) == 0) stop("Could not find ^TABLE_BEGIN in the ADAT file.")
-  table_begin <- table_begin[1]
-  candidate_end <- min(length(lines), table_begin + max_annotation_lines)
-  meta_lines <- lines[(table_begin + 1):candidate_end]
-  split_lines <- strsplit(meta_lines, "\t", fixed = TRUE)
-
-  find_row <- function(row_name) {
-    idx <- which(vapply(split_lines, function(x) length(x) > 0 && row_name %in% x, logical(1)))
-    if (length(idx) == 0) return(NULL)
-    x <- split_lines[[idx[1]]]
-    pos <- which(x == row_name)[1]
-    x[(pos + 1):length(x)]
-  }
-
-  seq_id <- find_row("SeqId")
-  if (is.null(seq_id)) {
-    adat_obj <- tryCatch(SomaDataIO::read_adat(adat_file), error = function(e) NULL)
-    ai <- tryCatch(SomaDataIO::getAnalyteInfo(adat_obj), error = function(e) NULL)
-    if (!is.null(ai) && all(c("AptName", "SeqId") %in% names(ai))) {
-      return(tibble::as_tibble(ai) %>% dplyr::mutate(dplyr::across(dplyr::everything(), as.character)))
-    }
-    stop("Could not find SeqId row in ADAT annotation block and SomaDataIO fallback failed.")
-  }
-
-  n <- length(seq_id)
-  safe_row <- function(row_name) {
-    vals <- find_row(row_name)
-    if (is.null(vals)) return(rep(NA_character_, n))
-    length(vals) <- n
-    vals
-  }
-
-  tibble::tibble(
-    SeqId = seq_id,
-    AptName = paste0("seq.", gsub("-", ".", seq_id)),
-    SeqIdVersion = safe_row("SeqIdVersion"),
-    SomaId = safe_row("SomaId"),
-    TargetFullName = safe_row("TargetFullName"),
-    Target = safe_row("Target"),
-    UniProt = safe_row("UniProt"),
-    EntrezGeneID = safe_row("EntrezGeneID"),
-    EntrezGeneSymbol = safe_row("EntrezGeneSymbol"),
-    Organism = safe_row("Organism"),
-    Units = safe_row("Units"),
-    Type = safe_row("Type"),
-    Dilution = safe_row("Dilution")
-  ) %>%
-    dplyr::mutate(dplyr::across(dplyr::everything(), ~ trimws(as.character(.x)))) %>%
-    dplyr::mutate(dplyr::across(dplyr::everything(), ~ dplyr::na_if(.x, "")))
 }
 
 build_annotation_table <- function(soma_info_internal, seq_cols) {
@@ -296,68 +243,34 @@ run_limma_dep_model <- function(dat, seq_cols, annot_tbl, formula_str, coef_name
 # 02_import_metadata_adat_annotation
 ###############################################################################
 
-message("Importing metadata and ADAT...")
+message("Importing reviewer metadata and proteomics...")
 
-meta_info_new <- read.csv(csv_file, check.names = FALSE, stringsAsFactors = FALSE)
-required_columns(meta_info_new, c("SampleId", "Sex", "Age", "Country", "Education", "ApoE"), "metadata CSV")
+reviewer_inputs <- reviewer_load_aptamer_data(
+  metadata_file = csv_file,
+  proteomics_file = ML_CONFIG$proteomics_file,
+  annotation_file = ML_CONFIG$annotation_file
+)
 
-meta_info_new <- meta_info_new %>%
-  dplyr::mutate(
-    SampleId = as.character(SampleId),
-    Sex = dplyr::recode(as.character(Sex), "1" = "F", "2" = "M", .default = as.character(Sex)),
-    ApoE = norm_char(ApoE),
-    APOE4_carrier = dplyr::case_when(
-      ApoE %in% c("e2/e4", "e3/e4", "e4/e4") ~ 1,
-      ApoE %in% c("e2/e2", "e2/e3", "e3/e3") ~ 0,
-      TRUE ~ NA_real_
-    )
-  )
+meta_info_new <- reviewer_inputs$metadata
+required_columns(meta_info_new, c("SampleId", "Sex", "Age", "Country", "Education", "ApoE"), "reviewer metadata")
 
-my_adat <- SomaDataIO::read_adat(adat_file)
-my_adat$SampleId <- as.character(my_adat$SampleId)
-soma_info_internal <- extract_adat_annotation_from_table(adat_file)
+my_adat <- reviewer_inputs$proteomics_raw_compat
+soma_info_internal <- reviewer_inputs$annotation
 
 sample_data <- meta_info_new %>%
-  dplyr::left_join(my_adat, by = "SampleId", suffix = c(".csv", ".adat"))
+  dplyr::left_join(my_adat, by = "SampleId")
 
-if ("SampleType.csv" %in% names(sample_data) && "SampleType.adat" %in% names(sample_data)) {
-  sample_data <- sample_data %>% dplyr::mutate(SampleType = dplyr::coalesce(`SampleType.adat`, `SampleType.csv`))
-}
-if ("SampleGroup.csv" %in% names(sample_data) && "SampleGroup.adat" %in% names(sample_data)) {
-  sample_data <- sample_data %>% dplyr::mutate(SampleGroup = dplyr::coalesce(`SampleGroup.adat`, `SampleGroup.csv`))
-}
-if ("RowCheck.adat" %in% names(sample_data) && !"RowCheck" %in% names(sample_data)) {
-  sample_data <- sample_data %>% dplyr::mutate(RowCheck = `RowCheck.adat`)
-}
+if (!"SampleType" %in% names(sample_data)) sample_data$SampleType <- "Sample"
+if (!"SampleGroup" %in% names(sample_data)) stop("SampleGroup was not found in reviewer metadata.")
+if (!"RowCheck" %in% names(sample_data)) sample_data$RowCheck <- NA_character_
 
-if (!"SampleType" %in% names(sample_data)) stop("SampleType could not be recovered after CSV + ADAT merge.")
-if (!"SampleGroup" %in% names(sample_data)) stop("SampleGroup could not be recovered after CSV + ADAT merge.")
-
-sample_data <- sample_data %>% dplyr::filter(is.na(RowCheck) | RowCheck == "PASS")
-
+# Reviewer release is already post-QC; do not introduce a new RowCheck exclusion.
 seq_cols <- grep("^seq[._]", names(sample_data), value = TRUE)
-if (length(seq_cols) == 0) stop("No seq.* or seq_* columns found after merge.")
+if (length(seq_cols) == 0) stop("No seq.* or seq_* columns found after reviewer-data merge.")
 
-annot_tbl <- build_annotation_table(soma_info_internal, seq_cols)
-
-protein_universe <- soma_info_internal %>%
-  dplyr::mutate(
-    AptName = as.character(AptName),
-    Organism = as.character(Organism),
-    Type = as.character(Type),
-    EntrezGeneSymbol = as.character(EntrezGeneSymbol)
-  ) %>%
-  dplyr::filter(
-    Organism == "Human",
-    Type == "Protein",
-    !is.na(EntrezGeneSymbol),
-    EntrezGeneSymbol != ""
-  ) %>%
-  dplyr::pull(AptName) %>%
-  unique() %>%
-  intersect(seq_cols)
-
-if (length(protein_universe) == 0) stop("No proteins matched the internal ADAT protein universe filtering.")
+annot_tbl <- reviewer_inputs$annotation
+protein_universe <- reviewer_inputs$protein_universe
+if (length(protein_universe) == 0) stop("No proteins matched the reviewer annotation universe.")
 
 ###############################################################################
 # 03_nested_DEP_for_ML_candidate_space
@@ -365,7 +278,7 @@ if (length(protein_universe) == 0) stop("No proteins matched the internal ADAT p
 
 message("Running nested DEP models for ML candidate space...")
 
-# FOLDS_DIR is defined from ML_CONFIG at the start of the script.
+# FOLDS_DIR is defined from ML_CONFIG above; legacy external override removed.
 main_formula <- "~ SampleGroup + Age + Sex + Country + Education"
 coef_name <- "SampleGroupAD"
 
