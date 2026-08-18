@@ -1,6 +1,6 @@
 # ReDLat plasma proteomics pipeline
 
-Reproducible analysis code for the study **“Plasma proteomics maps the molecular architecture of Alzheimer’s disease in Latin America”**, including differential protein abundance analysis (DEP), weighted gene co-expression network analysis (WGCNA), sensitivity analyses, and leakage-controlled machine-learning workflows.
+Reproducible analysis code for the study **“Plasma proteomics maps the molecular architecture of Alzheimer’s disease in Latin America”**, including differential protein abundance analysis (DEP), weighted gene co-expression network analysis (WGCNA), sensitivity analyses, and version-locked manuscript-reproduction machine-learning workflows. A separate strict-CV reference implementation is provided in `python/redlat_ml/strict_cv.py`.
 
 This repository contains analysis code, configuration helpers, environment specifications, validation utilities, and privacy audits. **Participant-level ReDLat data are not included in the public repository.** Access to governed data remains subject to ReDLat ethics approvals, informed-consent conditions, and data-use agreements.
 
@@ -78,7 +78,7 @@ The validated direct execution order is recorded in `RUN_ANALYSES_IN_ORDER.txt`.
 2. run WGCNA scripts in numerical order after DEP inputs are available;
 3. run the ML R/Python scripts in numerical order after `RUN_PRECHECK` has generated the local ML compatibility files.
 
-The ML workflow performs fold-specific differential-abundance filtering and training-only preprocessing/feature selection for nested cross-validation. Country-held-out analyses are interpreted as internal geographic robustness rather than external validation.
+The ML workflow preserves the version-locked implementation used to reproduce the reported results. A separate strict-CV reference implementation is provided in `python/redlat_ml/strict_cv.py`, where preprocessing is encapsulated within training CV pipelines. Country-held-out analyses are interpreted as internal geographic robustness rather than external validation.
 
 ## Validation status
 

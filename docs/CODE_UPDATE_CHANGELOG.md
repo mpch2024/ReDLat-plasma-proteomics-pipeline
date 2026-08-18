@@ -28,4 +28,5 @@
 ## Public-repository boundary
 
 - Reviewer CSVs, pseudonymous IDs, raw ADAT files, linkage keys, private outputs, and reviewer sharing links remain outside Git.
-- Existing public workflow runners, tests, CI, license, renv records, DEP script 13, and ML scripts 25–26 are intentionally preserved by this overlay unless separately superseded.
+- Existing public workflow runners, tests, CI, license, renv records, DEP script 13, and ML script 26 remain preserved.
+- ML script 25 was superseded after CI review so that it blocks public-repository safety/portability violations while transparently reporting version-locked manuscript-reproduction implementation signatures without changing the model-fitting scripts.

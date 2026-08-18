@@ -25,7 +25,7 @@ CONFIG = load_config(__file__)
 # ============================================================
 # Run only if a package is missing:
 #
-# %pip install numpy pandas scipy scikit-learn matplotlib openpyxl pillow
+# Dependencies are declared in environment/requirements.txt and environment/environment.yml.
 
 # ============================================================
 # 1. IMPORTS AND USER SETTINGS

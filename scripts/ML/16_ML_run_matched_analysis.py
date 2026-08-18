@@ -27,12 +27,10 @@ CONFIG = load_config(__file__)
 # that each export exists and opens the folder automatically on Windows.
 
 # ============================================================
-# 0. OPTIONAL INSTALLATION
+# 0. DEPENDENCIES
 # ============================================================
-# Run this cell only if packages are missing.
-#
-# %pip install numpy pandas scipy scikit-learn scikit-optimize statsmodels \
-#     matplotlib openpyxl pillow
+# Runtime dependencies are declared in environment/requirements.txt and
+# environment/environment.yml. This analysis script does not install packages.
 
 
 # ## Ubicación de salida de la v17

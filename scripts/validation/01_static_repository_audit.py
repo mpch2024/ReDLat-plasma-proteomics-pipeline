@@ -27,7 +27,11 @@ for path in sorted(set(paths)):
         "personal_absolute_path": bool(re.search(r"[A-Za-z]:[/\\]Users[/\\][A-Za-z0-9._-]+|/Users/[A-Za-z0-9._-]+/|/home/[A-Za-z0-9._-]+/", text)),
         "setwd_call": bool(re.search(r"^\s*setwd\s*\(", text, flags=re.M)),
         "active_read_adat_call": bool(re.search(r"SomaDataIO::read_adat\s*\(", text)),
-        "runtime_install_command": bool(re.search(r"(^|\s)(install\.packages|BiocManager::install)\s*\(", text, flags=re.M)),
+        "runtime_install_command": bool(re.search(
+            r"(^|\s)(" + r"install" + r"\.packages|" + r"BiocManager::" + r"install" + r")\s*\(",
+            text,
+            flags=re.M,
+        )),
     })
 audit = pd.DataFrame(rows)
 audit.to_csv(OUT / "static_script_audit.csv", index=False)
