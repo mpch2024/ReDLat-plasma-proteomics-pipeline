@@ -2,23 +2,29 @@
 
 Reproducible analysis code for the study **“Plasma proteomics maps the molecular architecture of Alzheimer’s disease in Latin America”**, including differential protein abundance analysis (DEP), weighted gene co-expression network analysis (WGCNA), sensitivity analyses, and version-locked manuscript-reproduction machine-learning workflows. A separate strict-CV reference implementation is provided in `python/redlat_ml/strict_cv.py`.
 
-This repository contains analysis code, configuration helpers, environment specifications, validation utilities, and privacy audits. **Participant-level ReDLat data are not included in the public repository.** Access to governed data remains subject to ReDLat ethics approvals, informed-consent conditions, and data-use agreements.
+This repository contains analysis code, configuration helpers, environment specifications, validation utilities, and privacy audits. A processed and pseudonymized ReDLat dataset containing the information required to reproduce the reported analyses is publicly available through the data link provided below. Raw SomaScan data, direct participant identifiers, private linkage information, and other governed source data are not included in the public repository.
 
 ## Processed reviewer-data interface
 
-The codebase has been validated against a minimal processed and pseudonymized reviewer dataset consisting of exactly three files:
+The codebase has been validated against a minimal processed and pseudonymized dataset consisting of exactly three data files:
 
 - `ReDLat_proteomics_somamer_log2.csv` — 653 participants × 10,751 human SOMAmer features, represented as log2-transformed normalized RFU values;
 - `ReDLat_metadata_deidentified.csv` — pseudonymized demographic, clinical, biomarker, and analysis-inclusion variables required by the reported workflows;
 - `ReDLat_feature_annotation.csv` — SOMAmer/protein annotation and the feature-selection mappings required to reconstruct the 9,638-gene analysis universes.
 
-These files are **not committed to GitHub**. For an authorized local rerun, place them under:
+The dataset, together with a `README.txt` describing its contents, is publicly available at:
+
+**[Download the ReDLat processed proteomics dataset](https://drive.google.com/drive/folders/1GMyV_w1x6vZ-hmHOP_aK3C_MNMEswCDS?usp=sharing)**
+
+The data files are not committed directly to GitHub because the proteomics matrix exceeds the standard GitHub file-size limit.
+
+For a local rerun, download the three data files and place them under:
 
 ```text
 data_private/reviewer_inputs/
 ```
 
-or point `REDLAT_REVIEWER_DATA_DIR` to an approved local directory containing the same three files.
+or point `REDLAT_REVIEWER_DATA_DIR` to a local directory containing the same three files.
 
 The processed-data compatibility layer does not require or recreate the original SomaScan ADAT. For legacy R steps that historically performed a single log2 transformation, the adapter supplies `2^(released log2 RFU)` in memory so the original numerical workflow is preserved without double transformation. The historical machine-learning master is reconstructed locally from the released feature map and normalized-RFU-compatible values; no raw participant linkage file is required.
 
@@ -34,7 +40,7 @@ The processed-data compatibility layer does not require or recreate the original
 | `python/redlat_ml/` | Shared Python configuration and privacy utilities |
 | `config/` | Public project-relative configuration |
 | `environment/` | Package requirements used for rerun environments |
-| `data_private/reviewer_inputs/` | Untracked local location for governed reviewer inputs |
+| `data_private/reviewer_inputs/` | Untracked local location for downloaded processed data inputs |
 | `outputs/` | Generated local analysis products; excluded from version control |
 
 Existing repository-level workflows, tests, CI configuration, license files, and historical utilities remain part of the repository unless explicitly superseded by a later validated update.
@@ -47,7 +53,7 @@ Scripts do not install or update packages automatically.
 
 ## First validation step
 
-After placing the three authorized reviewer files in `data_private/reviewer_inputs/`, run from the repository root:
+After placing the three processed data files in `data_private/reviewer_inputs/`, run from the repository root:
 
 **Windows**
 
@@ -94,7 +100,11 @@ See `docs/FINAL_CODE_VALIDATION.md` for the code-update audit and `docs/REVIEWER
 
 ## Data governance
 
-Do not commit participant-level data, pseudonymous IDs, linkage keys, raw ADAT files, local absolute paths, credentials, or private analysis outputs. The public repository contains code only. Authorized reviewer datasets should be distributed through the controlled/private mechanism approved for the peer-review process.
+The publicly shared dataset contains processed proteomic measurements and pseudonymized participant information required to reproduce the reported analyses.
+
+Direct participant identifiers, original study identifiers, private linkage information, raw ADAT files, barcodes, dates, credentials, and other governed source data are not publicly distributed.
+
+Raw SomaScan source data and additional governed ReDLat data remain subject to the consortium's ethics approvals, informed-consent conditions, governance procedures, and data-use agreements.
 
 ## License
 
@@ -104,6 +114,5 @@ The analysis code is released under the MIT License. The existing repository-lev
 
 For questions regarding the study, data access, or analytical workflow:
 
-**Claudia Durán-Aniotz**
-Universidad Adolfo Ibáñez
+**Claudia Durán-Aniotz**   
 Email: claudia.duran@uai.cl
